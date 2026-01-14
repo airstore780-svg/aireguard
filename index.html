@@ -178,7 +178,7 @@
                 btnText.innerText = "Active";
                 btn.classList.add('active');
                 pulse.classList.add('pulse-ring');
-                document.getElementById('system-status').innerText = "Guard Online";
+                document.getElementById('system-status').innerText = "AireGuard Online";
                 document.getElementById('system-status').style.color = "#d4af37";
 
                 characteristic.addEventListener('characteristicvaluechanged', (event) => {
@@ -218,9 +218,10 @@
             // 2. Dialer Intent
             setTimeout(() => {
                 window.location.href = "tel:10111";
-            }, 1000);
+            }, 1500);
         }
     </script>
 </body>
 
 </html>
+
