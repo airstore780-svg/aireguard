@@ -151,77 +151,121 @@
     </div>
 
     <script>
-        // --- LOGIC ENGINE ---
-        const BPM_JUMP_LIMIT = 30;    
-        const TIME_WINDOW_MS = 5000;  
+    // --- LOGIC ENGINE ---
+    const BPM_JUMP_LIMIT = 30;    
+    const TIME_WINDOW_MS = 5000;  
+    
+    let lastHeartRate = 0;
+    let lastTimestamp = 0;
+    let isProtocolActive = false; // Prevents redundant triggers
+
+    // --- RECORDER GLOBALS ---
+    let mediaRecorder;
+    let recordInterval;
+
+    async function initializeAireGuard() {
+        const btnText = document.getElementById('btnText');
+        const btn = document.getElementById('mainBtn');
+        const pulse = document.getElementById('pulseElement');
+
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['heart_rate'] }]
+            });
+
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService('heart_rate');
+            const characteristic = await service.getCharacteristic('heart_rate_measurement');
+
+            await characteristic.startNotifications();
+            
+            // UI Update
+            btnText.innerText = "Active";
+            btn.classList.add('active');
+            pulse.classList.add('pulse-ring');
+            document.getElementById('system-status').innerText = "AireGuard Online";
+            document.getElementById('system-status').style.color = "#d4af37";
+
+            characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                const value = event.target.value;
+                const currentHR = value.getUint8(1); 
+                document.getElementById('hr-display').innerText = currentHR;
+                performAudit(currentHR);
+            });
+
+        } catch (err) {
+            console.error(err);
+            alert("Connection Interrupted.");
+        }
+    }
+
+    function performAudit(currentHR) {
+        const now = Date.now();
+        if (lastHeartRate > 0) {
+            const diff = currentHR - lastHeartRate;
+            const time = now - lastTimestamp;
+
+            if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
+                executeProtocol();
+            }
+        }
+        lastHeartRate = currentHR;
+        lastTimestamp = now;
+    }
+
+    // --- NEW: RECORDING LOGIC ---
+    async function startEvidenceCapture() {
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            
+            const recordChunk = () => {
+                mediaRecorder = new MediaRecorder(stream);
+                mediaRecorder.ondataavailable = (event) => {
+                    if (event.data.size > 0) {
+                        const blob = new Blob([event.data], { type: 'audio/wav' });
+                        const url = URL.createObjectURL(blob);
+                        const a = document.createElement('a');
+                        const ts = new Date().toLocaleTimeString().replace(/:/g, '-');
+                        a.href = url;
+                        a.download = `AireGuard_Evidence_${ts}.wav`;
+                        a.click();
+                    }
+                };
+
+                mediaRecorder.start();
+                // Stop after 60s to trigger the save and restart
+                setTimeout(() => {
+                    if (mediaRecorder.state !== "inactive") mediaRecorder.stop();
+                }, 60000);
+            };
+
+            recordChunk(); // Start first minute
+            recordInterval = setInterval(recordChunk, 60500); // Loop every minute
+        } catch (err) {
+            console.error("Recording failed", err);
+        }
+    }
+
+    function executeProtocol() {
+        isProtocolActive = true;
+
+        // 1. Audio Evidence Capture (New Surgical Layer)
+        startEvidenceCapture();
+
+        // 2. TTS Deterrent
+        const msg = new SpeechSynthesisUtterance("Security Alert. Assault detected. Calling police.");
+        msg.rate = 0.85;
+        window.speechSynthesis.speak(msg);
+        window.speechSynthesis.speak(msg); // Repeat
         
-        let lastHeartRate = 0;
-        let lastTimestamp = 0;
-
-        async function initializeAireGuard() {
-            const btnText = document.getElementById('btnText');
-            const btn = document.getElementById('mainBtn');
-            const pulse = document.getElementById('pulseElement');
-
-            try {
-                const device = await navigator.bluetooth.requestDevice({
-                    filters: [{ services: ['heart_rate'] }]
-                });
-
-                const server = await device.gatt.connect();
-                const service = await server.getPrimaryService('heart_rate');
-                const characteristic = await service.getCharacteristic('heart_rate_measurement');
-
-                await characteristic.startNotifications();
-                
-                // UI Update
-                btnText.innerText = "Active";
-                btn.classList.add('active');
-                pulse.classList.add('pulse-ring');
-                document.getElementById('system-status').innerText = "AireGuard Online";
-                document.getElementById('system-status').style.color = "#d4af37";
-
-                characteristic.addEventListener('characteristicvaluechanged', (event) => {
-                    const value = event.target.value;
-                    const currentHR = value.getUint8(1); 
-                    document.getElementById('hr-display').innerText = currentHR;
-                    performAudit(currentHR);
-                });
-
-            } catch (err) {
-                console.error(err);
-                alert("Connection Interrupted.");
-            }
-        }
-
-        function performAudit(currentHR) {
-            const now = Date.now();
-            if (lastHeartRate > 0) {
-                const diff = currentHR - lastHeartRate;
-                const time = now - lastTimestamp;
-
-                if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS) {
-                    executeProtocol();
-                }
-            }
-            lastHeartRate = currentHR;
-            lastTimestamp = now;
-        }
-
-        function executeProtocol() {
-            // 1. TTS Deterrent
-            const msg = new SpeechSynthesisUtterance("Security Alert. Assault detected. Calling police.");
-            msg.rate = 0.85;
-            window.speechSynthesis.speak(msg);
-            window.speechSynthesis.speak(msg); // Repeat
-
-            // 2. Dialer Intent
-            setTimeout(() => {
-                window.location.href = "tel:10111";
-            }, 1500);
-        }
-    </script>
+        // 3. Dialer Intent
+        setTimeout(() => {
+            window.location.href = "tel:10111";
+        }, 1500);
+    }
+</script>
 </body>
 
 </html>
+
 
