@@ -85,14 +85,15 @@
         <div class="status-box">
             <div class="status-label">Biometric Feed</div>
             <div id="hr-display">--</div>
-            <div id="rr-display">-- ms</div>
+            <div id="rr-display">-- ms (R-R)</div>
             <div class="status-label" id="system-status">System Offline</div>
         </div>
     </div>
 
     <script>
-    const BPM_JUMP_LIMIT = 30;    
-    const TIME_WINDOW_MS = 5000;  
+    // --- LOGIC ENGINE ---
+    const BPM_JUMP_LIMIT = 30;    // The "30+ BPM" Spike Rule
+    const TIME_WINDOW_MS = 5000;  // Within 5 Seconds
     
     let lastHeartRate = 0;
     let lastTimestamp = 0;
@@ -128,21 +129,22 @@
                 let offset = 1;
                 let currentHR;
 
-                // 1. Get BPM (Detect if 8-bit or 16-bit)
+                // 1. Core BPM Extraction
                 if (flags & 0x01) {
                     currentHR = value.getUint16(offset, true);
                 } else {
                     currentHR = value.getUint8(offset);
                 }
 
-                // 2. SYNTHETIC R-R CALCULATION
-                // Math: 60,000 / BPM = Milliseconds between beats
+                // 2. SYNTHETIC R-R DISPLAY CALCULATION
+                // This ensures the biometric feed shows movement instantly
                 const syntheticRR = Math.round(60000 / currentHR);
 
                 // 3. UI Update
                 document.getElementById('hr-display').innerText = currentHR;
-                document.getElementById('rr-display').innerText = syntheticRR + " ms";
+                document.getElementById('rr-display').innerText = syntheticRR + " ms (R-R)";
 
+                // 4. THE SPIKE AUDIT (30 BPM / 5 Sec Rule)
                 performAudit(currentHR);
             });
 
@@ -157,6 +159,8 @@
         if (lastHeartRate > 0) {
             const diff = currentHR - lastHeartRate;
             const time = now - lastTimestamp;
+            
+            // LOGIC CHECK: Did it jump 30+ in under 5 seconds?
             if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
                 executeProtocol();
             }
