@@ -122,7 +122,26 @@
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
-            executeProtocol(); //if you want to switch off "anti harrasment feature, disable this line.
+            executeProtocol(); //if you want to switch off anti harrasment feature, out comment this line here
+
+            // --- STUPID SIMPLE SPEECH RECOGNITION ---
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                    if (transcript.includes("banana") && !isProtocolActive) {
+                        executeProtocol();
+                    }
+                };
+
+                recognition.onerror = (e) => console.error("Speech Error: ", e);
+                recognition.start();
+            }
 
             characteristic.addEventListener('characteristicvaluechanged', (event) => {
                 const value = event.target.value;
@@ -204,4 +223,3 @@
     </script>
 </body>
 </html>
-
