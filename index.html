@@ -9,125 +9,56 @@
     <style>
         :root {
             --bg-color: #0a0a0a;
-            --accent-gold: #d4af37; /* Premium Gold */
+            --accent-gold: #d4af37;
             --text-main: #ffffff;
             --text-dim: #888888;
             --glass-bg: rgba(255, 255, 255, 0.05);
         }
 
         body, html {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: 'Inter', sans-serif;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: 'Inter', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
             overflow: hidden;
         }
 
-        /* Ambient Glow Background */
         .glow {
-            position: absolute;
-            width: 300px;
-            height: 300px;
+            position: absolute; width: 300px; height: 300px;
             background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
             z-index: 0;
         }
 
-        .container {
-            z-index: 1;
-            text-align: center;
-            width: 85%;
-        }
+        .container { z-index: 1; text-align: center; width: 85%; }
 
-        .brand-header {
-            margin-bottom: 50px;
-        }
+        .brand-header { margin-bottom: 50px; }
+        .brand-header h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; letter-spacing: 2px; margin: 0; }
+        .brand-header p { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; }
 
-        .brand-header h1 {
-            font-family: 'Playfair Display', serif;
-            font-size: 2.2rem;
-            letter-spacing: 2px;
-            margin: 0;
-        }
-
-        .brand-header p {
-            font-size: 0.8rem;
-            color: var(--text-dim);
-            letter-spacing: 4px;
-            text-transform: uppercase;
-            margin-top: 10px;
-        }
-
-        /* The Core Button */
         .sync-btn {
-            width: 180px;
-            height: 180px;
-            border-radius: 50%;
-            background: transparent;
-            border: 1px solid var(--accent-gold);
-            color: var(--accent-gold);
-            font-size: 0.9rem;
-            letter-spacing: 2px;
-            text-transform: uppercase;
-            cursor: pointer;
-            position: relative;
+            width: 180px; height: 180px; border-radius: 50%;
+            background: transparent; border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); font-size: 0.9rem; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; position: relative;
             transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
             box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
         }
 
-        .sync-btn:active {
-            transform: scale(0.95);
-            background: rgba(212, 175, 55, 0.1);
-        }
-
-        .sync-btn.active {
-            border-color: #fff;
-            color: #fff;
-            box-shadow: 0 0 40px rgba(255, 255, 255, 0.1);
-        }
+        .sync-btn.active { border-color: #fff; color: #fff; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); }
 
         .status-box {
-            margin-top: 60px;
-            padding: 20px;
-            border-radius: 15px;
-            background: var(--glass-bg);
-            border: 1px solid rgba(255,255,255,0.1);
+            margin-top: 60px; padding: 20px; border-radius: 15px;
+            background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
         }
 
-        #hr-display {
-            font-size: 2.5rem;
-            font-weight: 300;
-            margin: 10px 0 0 0;
-        }
-
-        /* RR Interval Display Styling */
-        #rr-display {
-            font-size: 1.1rem;
-            color: var(--accent-gold);
-            font-weight: 400;
-            margin-bottom: 10px;
-        }
-
-        .status-label {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            letter-spacing: 2px;
-            text-transform: uppercase;
-        }
+        #hr-display { font-size: 2.5rem; font-weight: 300; margin: 10px 0; }
+        #rr-display { font-size: 0.9rem; color: var(--accent-gold); margin-bottom: 10px; }
+        .status-label { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
 
         .pulse-ring {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            border: 1px solid var(--accent-gold);
-            border-radius: 50%;
-            animation: pulse 2s infinite;
-            opacity: 0;
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid var(--accent-gold); border-radius: 50%;
+            animation: pulse 2s infinite; opacity: 0;
         }
 
         @keyframes pulse {
@@ -154,21 +85,18 @@
         <div class="status-box">
             <div class="status-label">Biometric Feed</div>
             <div id="hr-display">--</div>
-            <div id="rr-display">-- ms (R-R)</div>
+            <div id="rr-display">-- ms</div>
             <div class="status-label" id="system-status">System Offline</div>
         </div>
     </div>
 
     <script>
-    // --- LOGIC ENGINE ---
     const BPM_JUMP_LIMIT = 30;    
     const TIME_WINDOW_MS = 5000;  
     
     let lastHeartRate = 0;
     let lastTimestamp = 0;
-    let isProtocolActive = false; // Prevents redundant triggers
-
-    // --- RECORDER GLOBALS ---
+    let isProtocolActive = false;
     let mediaRecorder;
     let recordInterval;
 
@@ -188,54 +116,33 @@
 
             await characteristic.startNotifications();
             
-            // UI Update
             btnText.innerText = "Active";
             btn.classList.add('active');
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
 
-            // Trigger initial recording immediately upon connection
-            executeProtocol();
-
             characteristic.addEventListener('characteristicvaluechanged', (event) => {
                 const value = event.target.value;
                 const flags = value.getUint8(0);
                 let offset = 1;
-
-                // 1. Get BPM (Handles both 8-bit and 16-bit formats)
                 let currentHR;
+
+                // 1. Get BPM (Detect if 8-bit or 16-bit)
                 if (flags & 0x01) {
                     currentHR = value.getUint16(offset, true);
-                    offset += 2;
                 } else {
                     currentHR = value.getUint8(offset);
-                    offset += 1;
                 }
 
-                // 2. Get R-R Intervals (The milliseconds gap)
-                let rrIntervals = [];
-                if (flags & 0x10) { // Bit 4 indicates R-R data is present
-                    while (offset + 1 < value.byteLength) {
-                        // Intervals are in units of 1/1024 second
-                        let rawRR = value.getUint16(offset, true);
-                        let ms = Math.round((rawRR / 1024) * 1000);
-                        rrIntervals.push(ms);
-                        offset += 2;
-                    }
-                }
+                // 2. SYNTHETIC R-R CALCULATION
+                // Math: 60,000 / BPM = Milliseconds between beats
+                const syntheticRR = Math.round(60000 / currentHR);
 
-                // Update UI with BPM
+                // 3. UI Update
                 document.getElementById('hr-display').innerText = currentHR;
-                
-                // Update UI with latest R-R Interval if present
-                if (rrIntervals.length > 0) {
-                    const latestRR = rrIntervals[rrIntervals.length - 1];
-                    document.getElementById('rr-display').innerText = `${latestRR} ms (R-R)`;
-                    console.log("R-R Intervals (ms):", rrIntervals);
-                }
+                document.getElementById('rr-display').innerText = syntheticRR + " ms";
 
-                // Standard Audit based on BPM Jump Limit
                 performAudit(currentHR);
             });
 
@@ -250,8 +157,6 @@
         if (lastHeartRate > 0) {
             const diff = currentHR - lastHeartRate;
             const time = now - lastTimestamp;
-
-            // Trigger if BPM jumps 30+ points within 5 seconds
             if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
                 executeProtocol();
             }
@@ -260,11 +165,9 @@
         lastTimestamp = now;
     }
 
-    // --- RECORDING LOGIC ---
     async function startEvidenceCapture() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            
             const recordChunk = () => {
                 mediaRecorder = new MediaRecorder(stream);
                 mediaRecorder.ondataavailable = (event) => {
@@ -272,44 +175,27 @@
                         const blob = new Blob([event.data], { type: 'audio/wav' });
                         const url = URL.createObjectURL(blob);
                         const a = document.createElement('a');
-                        const ts = new Date().toLocaleTimeString().replace(/:/g, '-');
                         a.href = url;
-                        a.download = `AireGuard_Evidence_${ts}.wav`;
+                        a.download = `AireGuard_Evidence_${Date.now()}.wav`;
                         a.click();
                     }
                 };
-
                 mediaRecorder.start();
-                // Stop after 60s to trigger the save and restart
-                setTimeout(() => {
-                    if (mediaRecorder.state !== "inactive") mediaRecorder.stop();
-                }, 60000);
+                setTimeout(() => { if (mediaRecorder.state !== "inactive") mediaRecorder.stop(); }, 60000);
             };
-
-            recordChunk(); // Start first minute
-            recordInterval = setInterval(recordChunk, 60500); // Loop every minute
-        } catch (err) {
-            console.error("Recording failed", err);
-        }
+            recordChunk();
+            recordInterval = setInterval(recordChunk, 60500);
+        } catch (err) { console.error(err); }
     }
 
     function executeProtocol() {
         isProtocolActive = true;
-
-        // 1. Audio Evidence Capture
         startEvidenceCapture();
-
-        // 2. TTS Deterrent
         const msg = new SpeechSynthesisUtterance("Security Alert. Assault detected. Calling police.");
         msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
-        window.speechSynthesis.speak(msg); // Repeat
-        
-        // 3. Dialer Intent
-        setTimeout(() => {
-            window.location.href = "tel:10111";
-        }, 1500);
+        setTimeout(() => { window.location.href = "tel:10111"; }, 1500);
     }
-</script>
+    </script>
 </body>
 </html>
