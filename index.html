@@ -208,7 +208,7 @@
                 let rrIntervals = [];
                 if (flags & 0x10) { // Bit 4 indicates R-R data is present
                     while (offset + 1 < value.byteLength) {
-                        // Intervals are 1/1024sec, converting to pure ms
+                        // Intervals are in units of 1/1024 second
                         let rawRR = value.getUint16(offset, true);
                         let ms = Math.round((rawRR / 1024) * 1000);
                         rrIntervals.push(ms);
@@ -224,6 +224,7 @@
                     console.log("R-R Intervals (ms):", rrIntervals);
                 }
 
+                // Standard Audit based on BPM Jump Limit
                 performAudit(currentHR);
             });
 
@@ -239,6 +240,7 @@
             const diff = currentHR - lastHeartRate;
             const time = now - lastTimestamp;
 
+            // Trigger if BPM jumps 30+ points within 5 seconds
             if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
                 executeProtocol();
             }
@@ -301,6 +303,7 @@
 </body>
 
 </html>
+
 
 
 
