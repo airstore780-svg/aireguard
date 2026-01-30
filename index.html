@@ -122,6 +122,7 @@
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
+            executeProtocol(); //if you want to switch off "anti harrasment feature, disable this line.
 
             characteristic.addEventListener('characteristicvaluechanged', (event) => {
                 const value = event.target.value;
@@ -203,3 +204,4 @@
     </script>
 </body>
 </html>
+
