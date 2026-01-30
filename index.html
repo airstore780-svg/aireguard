@@ -185,12 +185,45 @@
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
-            executeProtocol(); //In case you get an error or bug, always remember the issue is here.
+
+            // Trigger initial recording immediately upon connection
+            executeProtocol();
 
             characteristic.addEventListener('characteristicvaluechanged', (event) => {
                 const value = event.target.value;
-                const currentHR = value.getUint8(1); 
+                const flags = value.getUint8(0);
+                let offset = 1;
+
+                // 1. Get BPM (Handles both 8-bit and 16-bit formats)
+                let currentHR;
+                if (flags & 0x01) {
+                    currentHR = value.getUint16(offset, true);
+                    offset += 2;
+                } else {
+                    currentHR = value.getUint8(offset);
+                    offset += 1;
+                }
+
+                // 2. Get R-R Intervals (The milliseconds gap)
+                let rrIntervals = [];
+                if (flags & 0x10) { // Bit 4 indicates R-R data is present
+                    while (offset + 1 < value.byteLength) {
+                        // Intervals are 1/1024sec, converting to pure ms
+                        let rawRR = value.getUint16(offset, true);
+                        let ms = Math.round((rawRR / 1024) * 1000);
+                        rrIntervals.push(ms);
+                        offset += 2;
+                    }
+                }
+
+                // Update UI with BPM
                 document.getElementById('hr-display').innerText = currentHR;
+                
+                // Log intervals for debugging the "Shock" pattern
+                if (rrIntervals.length > 0) {
+                    console.log("R-R Intervals (ms):", rrIntervals);
+                }
+
                 performAudit(currentHR);
             });
 
@@ -214,7 +247,7 @@
         lastTimestamp = now;
     }
 
-    // --- NEW: RECORDING LOGIC ---
+    // --- RECORDING LOGIC ---
     async function startEvidenceCapture() {
         try {
             const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
@@ -250,7 +283,7 @@
     function executeProtocol() {
         isProtocolActive = true;
 
-        // 1. Audio Evidence Capture (New Surgical Layer)
+        // 1. Audio Evidence Capture
         startEvidenceCapture();
 
         // 2. TTS Deterrent
@@ -268,6 +301,7 @@
 </body>
 
 </html>
+
 
 
 
