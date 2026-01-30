@@ -103,7 +103,15 @@
         #hr-display {
             font-size: 2.5rem;
             font-weight: 300;
-            margin: 10px 0;
+            margin: 10px 0 0 0;
+        }
+
+        /* RR Interval Display Styling */
+        #rr-display {
+            font-size: 1.1rem;
+            color: var(--accent-gold);
+            font-weight: 400;
+            margin-bottom: 10px;
         }
 
         .status-label {
@@ -146,6 +154,7 @@
         <div class="status-box">
             <div class="status-label">Biometric Feed</div>
             <div id="hr-display">--</div>
+            <div id="rr-display">-- ms (R-R)</div>
             <div class="status-label" id="system-status">System Offline</div>
         </div>
     </div>
@@ -219,8 +228,10 @@
                 // Update UI with BPM
                 document.getElementById('hr-display').innerText = currentHR;
                 
-                // Log intervals for debugging the "Shock" pattern
+                // Update UI with latest R-R Interval if present
                 if (rrIntervals.length > 0) {
+                    const latestRR = rrIntervals[rrIntervals.length - 1];
+                    document.getElementById('rr-display').innerText = `${latestRR} ms (R-R)`;
                     console.log("R-R Intervals (ms):", rrIntervals);
                 }
 
@@ -301,10 +312,4 @@
     }
 </script>
 </body>
-
 </html>
-
-
-
-
-
