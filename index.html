@@ -23,6 +23,51 @@
             overflow: hidden;
         }
 
+        /* --- DISCLAIMER MODAL STYLES --- */
+        #disclaimer-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        #disclaimer-overlay.show { opacity: 1; visibility: visible; }
+
+        .modal-card {
+            background: var(--glass-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 40px 30px; border-radius: 20px;
+            width: 85%; max-width: 400px; text-align: center;
+            position: relative; transform: translateY(20px);
+            transition: transform 0.5s ease;
+        }
+
+        #disclaimer-overlay.show .modal-card { transform: translateY(0); }
+
+        .modal-card h2 { 
+            font-family: 'Playfair Display', serif; color: var(--accent-gold); 
+            margin-top: 0; font-size: 1.5rem; 
+        }
+
+        .modal-card p { font-size: 0.9rem; line-height: 1.6; color: var(--text-main); margin: 20px 0; }
+        
+        .close-x {
+            position: absolute; top: 15px; right: 20px;
+            background: none; border: none; color: var(--text-dim);
+            font-size: 1.5rem; cursor: pointer;
+        }
+
+        .modal-btn {
+            background: transparent; border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); padding: 12px 40px; border-radius: 30px;
+            text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px;
+            cursor: pointer; transition: all 0.3s;
+        }
+
+        .modal-btn:hover { background: var(--accent-gold); color: black; }
+
+        /* --- EXISTING STYLES --- */
         .glow {
             position: absolute; width: 300px; height: 300px;
             background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
@@ -69,6 +114,19 @@
 </head>
 <body>
 
+    <div id="disclaimer-overlay">
+        <div class="modal-card">
+            <button class="close-x" onclick="closeDisclaimer()">&times;</button>
+            <h2>AireGuard Integrity</h2>
+            <p>
+                <strong>Disclaimer:</strong> If your watch is connected but this biometric feed is empty, your smartwatch is fake. 
+                <br><br>
+                Open your BPM or heart-rate app and put it on a table to confirm. If it still gives you a reading whilst on a solid surface, it is definitely fake.
+            </p>
+            <button class="modal-btn" onclick="closeDisclaimer()">Understood</button>
+        </div>
+    </div>
+
     <div class="glow"></div>
 
     <div class="container">
@@ -91,6 +149,17 @@
     </div>
 
     <script>
+    // --- POPUP LOGIC ---
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('disclaimer-overlay').classList.add('show');
+        }, 800);
+    };
+
+    function closeDisclaimer() {
+        document.getElementById('disclaimer-overlay').classList.remove('show');
+    }
+
     // --- LOGIC ENGINE ---
     const BPM_JUMP_LIMIT = 30;    // The "30+ BPM" Spike Rule
     const TIME_WINDOW_MS = 5000;  // Within 5 Seconds
@@ -122,9 +191,8 @@
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
-            executeProtocol(); //if you want to switch off anti harrasment feature, out comment this line here
 
-            // --- STUPID SIMPLE SPEECH RECOGNITION ---
+            // --- SPEECH RECOGNITION ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
             if (SpeechRecognition) {
                 const recognition = new SpeechRecognition();
@@ -134,7 +202,7 @@
 
                 recognition.onresult = (event) => {
                     const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-                    if (transcript.includes("banana") && !isProtocolActive) {
+                    if (transcript.includes("james") && !isProtocolActive) {
                         executeProtocol();
                     }
                 };
@@ -149,22 +217,17 @@
                 let offset = 1;
                 let currentHR;
 
-                // 1. Core BPM Extraction
                 if (flags & 0x01) {
                     currentHR = value.getUint16(offset, true);
                 } else {
                     currentHR = value.getUint8(offset);
                 }
 
-                // 2. SYNTHETIC R-R DISPLAY CALCULATION
-                // This ensures the biometric feed shows movement instantly
                 const syntheticRR = Math.round(60000 / currentHR);
 
-                // 3. UI Update
                 document.getElementById('hr-display').innerText = currentHR;
                 document.getElementById('rr-display').innerText = syntheticRR + " ms (R-R)";
 
-                // 4. THE SPIKE AUDIT (30 BPM / 5 Sec Rule)
                 performAudit(currentHR);
             });
 
@@ -180,7 +243,6 @@
             const diff = currentHR - lastHeartRate;
             const time = now - lastTimestamp;
             
-            // LOGIC CHECK: Did it jump 30+ in under 5 seconds?
             if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
                 executeProtocol();
             }
