@@ -67,7 +67,7 @@
 
         .modal-btn:hover { background: var(--accent-gold); color: black; }
 
-        /* --- EXISTING STYLES --- */
+        /* --- UI STYLES --- */
         .glow {
             position: absolute; width: 300px; height: 300px;
             background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
@@ -161,14 +161,12 @@
     }
 
     // --- LOGIC ENGINE ---
-    const BPM_JUMP_LIMIT = 30;    // The "30+ BPM" Spike Rule
-    const TIME_WINDOW_MS = 5000;  // Within 5 Seconds
+    const BPM_JUMP_LIMIT = 30;    
+    const TIME_WINDOW_MS = 5000;  
     
     let lastHeartRate = 0;
     let lastTimestamp = 0;
     let isProtocolActive = false;
-    let mediaRecorder;
-    let recordInterval;
 
     async function initializeAireGuard() {
         const btnText = document.getElementById('btnText');
@@ -191,7 +189,7 @@
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
-            
+            startContinuousRecording();
 
             // --- SPEECH RECOGNITION ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
@@ -252,32 +250,17 @@
         lastTimestamp = now;
     }
 
-    async function startEvidenceCapture() {
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-            const recordChunk = () => {
-                mediaRecorder = new MediaRecorder(stream);
-                mediaRecorder.ondataavailable = (event) => {
-                    if (event.data.size > 0) {
-                        const blob = new Blob([event.data], { type: 'audio/wav' });
-                        const url = URL.createObjectURL(blob);
-                        const a = document.createElement('a');
-                        a.href = url;
-                        a.download = `AireGuard_Evidence_${Date.now()}.wav`;
-                        a.click();
-                    }
-                };
-                mediaRecorder.start();
-                setTimeout(() => { if (mediaRecorder.state !== "inactive") mediaRecorder.stop(); }, 60000);
-            };
-            recordChunk();
-            recordInterval = setInterval(recordChunk, 60500);
-        } catch (err) { console.error(err); }
-    }
-
+    // --- PROTOCOL ENGINE ---
     function executeProtocol() {
         isProtocolActive = true;
-        startEvidenceCapture();
+        
+        // This calls the function inside your external aire_recorder.js
+        if (typeof startContinuousRecording === "function") {
+            startContinuousRecording();
+        } else {
+            console.error("aire_recorder.js not loaded yet.");
+        }
+
         const msg = new SpeechSynthesisUtterance("Security Alert. Assault detected. Calling police.");
         msg.rate = 0.85;
         window.speechSynthesis.speak(msg);
