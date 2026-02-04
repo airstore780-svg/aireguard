@@ -121,7 +121,7 @@
             <p>
                 <strong>Disclaimer:</strong> If your watch is connected but this biometric feed is empty, your smartwatch is fake. 
                 <br><br>
-                Open your BPM or heart-rate app and put it on a table to confirm. If it still gives you a reading whilst on a solid surface, it is definitely fake.
+                To confirm if your smartwatch is legit, open your BPM or heart-rate app on your watch and put it on a table or any flat surface to confirm. If it still gives you a reading whilst on a solid surface, it is definitely fake.
             </p>
             <button class="modal-btn" onclick="closeDisclaimer()">Understood</button>
         </div>
@@ -191,6 +191,7 @@
             pulse.classList.add('pulse-ring');
             document.getElementById('system-status').innerText = "AireGuard Online";
             document.getElementById('system-status').style.color = "#d4af37";
+            executeProtocol();
 
             // --- SPEECH RECOGNITION ---
             const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
