@@ -203,7 +203,7 @@
                     const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
                     if (transcript.includes("james") && !isProtocolActive) {
                         executeProtocol();
-                        function sendPing();
+                        sendPing();
                     }
                 };
 
@@ -245,7 +245,7 @@
             
             if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
                 executeProtocol();
-                function sendPing();
+                sendPing();
             }
         }
         lastHeartRate = currentHR;
@@ -282,12 +282,24 @@
     .catch(err => console.error("Ping error:", err));
 }
 
+        // Listen to SSE from events.php
+const es = new EventSource("/events.php");
+
+es.addEventListener("ping", () => {
+  console.log("Ping received (SSE event)");
+
+  // Text-to-speech
+  const utterance = new SpeechSynthesisUtterance("Your loved one is in danger. Check the live location they sent you on WhatsApp, and call them. Call the police if they don't answer.");
+  speechSynthesis.speak(utterance);
+});
+
+
     </script>
     <script src="aire_recorder.js"></script>
-    <script src="listener.js"></script>
     <script src="pingsender.js"></script>
 </body>
 </html>
+
 
 
 
