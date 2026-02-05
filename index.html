@@ -203,6 +203,7 @@
                     const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
                     if (transcript.includes("james") && !isProtocolActive) {
                         executeProtocol();
+                        function sendPing();
                     }
                 };
 
@@ -244,6 +245,7 @@
             
             if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
                 executeProtocol();
+                function sendPing();
             }
         }
         lastHeartRate = currentHR;
@@ -266,10 +268,27 @@
         window.speechSynthesis.speak(msg);
         setTimeout(() => { window.location.href = "tel:10111"; }, 1500);
     }
+
+  function sendPing() {
+  fetch("/ping.php")
+    .then(response => response.text())
+    .then(text => {
+      console.log(text); // "Ping sent"
+
+      // Speak "Ping received" via TTS
+      const utterance = new SpeechSynthesisUtterance("Ping received");
+      speechSynthesis.speak(utterance);
+    })
+    .catch(err => console.error("Ping error:", err));
+}
+
     </script>
     <script src="aire_recorder.js"></script>
+    <script src="listener.js"></script>
+    <script src="pingsender.js"></script>
 </body>
 </html>
+
 
 
 
