@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AireGuard | Control Center</title>
+    <title>AireGuard | Personal Safety</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
     
     <style>
@@ -270,7 +270,7 @@
     }
 
   function sendPing() {
-  fetch("/ping.php")
+  fetch("https://airstore780-svg.github.io/aireguard/ping.php")
     .then(response => response.text())
     .then(text => {
       console.log(text); // "Ping sent"
@@ -283,7 +283,7 @@
 }
 
         // Listen to SSE from events.php
-const es = new EventSource("/events.php");
+const es = new EventSource("https://airstore780-svg.github.io/aireguard/events.php");
 
 es.addEventListener("ping", () => {
   console.log("Ping received (SSE event)");
@@ -299,6 +299,7 @@ es.addEventListener("ping", () => {
     <script src="pingsender.js"></script>
 </body>
 </html>
+
 
 
 
