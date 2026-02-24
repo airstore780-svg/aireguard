@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>AireGuard | Personal Safety</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+    
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --accent-gold: #d4af37;
+            --text-main: #ffffff;
+            --text-dim: #888888;
+            --glass-bg: rgba(255, 255, 255, 0.05);
+        }
+
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            background-color: var(--bg-color); color: var(--text-main);
+            font-family: 'Inter', sans-serif; display: flex;
+            flex-direction: column; justify-content: center; align-items: center;
+            overflow: hidden;
+        }
+
+        /* --- DISCLAIMER MODAL STYLES --- */
+        #disclaimer-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
+            display: flex; justify-content: center; align-items: center;
+            z-index: 1000; opacity: 0; visibility: hidden;
+            transition: all 0.5s ease;
+        }
+
+        #disclaimer-overlay.show { opacity: 1; visibility: visible; }
+
+        .modal-card {
+            background: var(--glass-bg);
+            border: 1px solid rgba(212, 175, 55, 0.3);
+            padding: 40px 30px; border-radius: 20px;
+            width: 85%; max-width: 400px; text-align: center;
+            position: relative; transform: translateY(20px);
+            transition: transform 0.5s ease;
+        }
+
+        #disclaimer-overlay.show .modal-card { transform: translateY(0); }
+
+        .modal-card h2 { 
+            font-family: 'Playfair Display', serif; color: var(--accent-gold); 
+            margin-top: 0; font-size: 1.5rem; 
+        }
+
+        .modal-card p { font-size: 0.9rem; line-height: 1.6; color: var(--text-main); margin: 20px 0; }
+        
+        .close-x {
+            position: absolute; top: 15px; right: 20px;
+            background: none; border: none; color: var(--text-dim);
+            font-size: 1.5rem; cursor: pointer;
+        }
+
+        .modal-btn {
+            background: transparent; border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); padding: 12px 40px; border-radius: 30px;
+            text-transform: uppercase; font-size: 0.7rem; letter-spacing: 2px;
+            cursor: pointer; transition: all 0.3s;
+        }
+
+        .modal-btn:hover { background: var(--accent-gold); color: black; }
+
+        /* --- UI STYLES --- */
+        .glow {
+            position: absolute; width: 300px; height: 300px;
+            background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
+            z-index: 0;
+        }
+
+        .container { z-index: 1; text-align: center; width: 85%; }
+
+        .brand-header { margin-bottom: 50px; }
+        .brand-header h1 { font-family: 'Playfair Display', serif; font-size: 2.2rem; letter-spacing: 2px; margin: 0; }
+        .brand-header p { font-size: 0.8rem; color: var(--text-dim); letter-spacing: 4px; text-transform: uppercase; margin-top: 10px; }
+
+        .sync-btn {
+            width: 180px; height: 180px; border-radius: 50%;
+            background: transparent; border: 1px solid var(--accent-gold);
+            color: var(--accent-gold); font-size: 0.9rem; letter-spacing: 2px;
+            text-transform: uppercase; cursor: pointer; position: relative;
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
+        }
+
+        .sync-btn.active { border-color: #fff; color: #fff; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); }
+
+        .status-box {
+            margin-top: 60px; padding: 20px; border-radius: 15px;
+            background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #hr-display { font-size: 2.5rem; font-weight: 300; margin: 10px 0; }
+        #rr-display { font-size: 0.9rem; color: var(--accent-gold); margin-bottom: 10px; }
+        .status-label { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
+
+        .pulse-ring {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            border: 1px solid var(--accent-gold); border-radius: 50%;
+            animation: pulse 2s infinite; opacity: 0;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 0.5; }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="disclaimer-overlay">
+        <div class="modal-card">
+            <button class="close-x" onclick="closeDisclaimer()">&times;</button>
+            <h2>AireGuard Integrity</h2>
+            <p>
+                <strong>Disclaimer:</strong> If your watch is connected but this biometric feed is empty, your smartwatch is fake. 
+                <br><br>
+                To confirm if your smartwatch is legit, open your BPM or heart-rate app on your watch and put it on a table or any flat surface to confirm. If it still gives you a reading whilst on a solid surface, or any surface that's NOT your wrist or sternum, it's definitely fake. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts. AireGuard requires usage of your microphone for Autonomous Evidence Recorder (Black Box). Please grant AireGuard microphone access.
+            </p>
+            <button class="modal-btn" onclick="closeDisclaimer()">Understood</button>
+        </div>
+    </div>
+
+    <div class="glow"></div>
+
+    <div class="container">
+        <div class="brand-header">
+            <h1>AireStore</h1>
+            <p>Anti GBV Protection</p>
+        </div>
+
+        <button class="sync-btn" id="mainBtn" onclick="initializeAireGuard()">
+            <div id="pulseElement"></div>
+            <span id="btnText">Sync Watch</span>
+        </button>
+
+        <div class="status-box">
+            <div class="status-label">Biometric Feed</div>
+            <div id="hr-display">--</div>
+            <div id="rr-display">-- ms (R-R)</div>
+            <div class="status-label" id="system-status">System Offline</div>
+        </div>
+    </div>
+
+    <script>
+    // --- POPUP LOGIC ---
+    window.onload = () => {
+        setTimeout(() => {
+            document.getElementById('disclaimer-overlay').classList.add('show');
+        }, 800);
+    };
+
+    function closeDisclaimer() {
+        document.getElementById('disclaimer-overlay').classList.remove('show');
+    }
+
+    // --- LOGIC ENGINE ---
+    const BPM_JUMP_LIMIT = 30;    
+    const TIME_WINDOW_MS = 5000;  
+    
+    let lastHeartRate = 0;
+    let lastTimestamp = 0;
+    let isProtocolActive = false;
+
+    async function initializeAireGuard() {
+        const btnText = document.getElementById('btnText');
+        const btn = document.getElementById('mainBtn');
+        const pulse = document.getElementById('pulseElement');
+
+        try {
+            const device = await navigator.bluetooth.requestDevice({
+                filters: [{ services: ['heart_rate'] }]
+            });
+
+            const server = await device.gatt.connect();
+            const service = await server.getPrimaryService('heart_rate');
+            const characteristic = await service.getCharacteristic('heart_rate_measurement');
+
+            await characteristic.startNotifications();
+            
+            btnText.innerText = "Active";
+            btn.classList.add('active');
+            pulse.classList.add('pulse-ring');
+            document.getElementById('system-status').innerText = "AireGuard Online";
+            document.getElementById('system-status').style.color = "#d4af37";
+           
+
+            // --- SPEECH RECOGNITION ---
+            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+            if (SpeechRecognition) {
+                const recognition = new SpeechRecognition();
+                recognition.continuous = true;
+                recognition.interimResults = false;
+                recognition.lang = 'en-US';
+
+                recognition.onresult = (event) => {
+                    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                    if (transcript.includes("james") && !isProtocolActive) {
+                        executeProtocol();
+                        sendPing();
+                    }
+                };
+
+                recognition.onerror = (e) => console.error("Speech Error: ", e);
+                recognition.start();
+            }
+
+            characteristic.addEventListener('characteristicvaluechanged', (event) => {
+                const value = event.target.value;
+                const flags = value.getUint8(0);
+                let offset = 1;
+                let currentHR;
+
+                if (flags & 0x01) {
+                    currentHR = value.getUint16(offset, true);
+                } else {
+                    currentHR = value.getUint8(offset);
+                }
+
+                const syntheticRR = Math.round(60000 / currentHR);
+
+                document.getElementById('hr-display').innerText = currentHR;
+                document.getElementById('rr-display').innerText = syntheticRR + " ms (R-R)";
+
+                performAudit(currentHR);
+            });
+
+        } catch (err) {
+            console.error(err);
+            alert("Connection Interrupted.");
+        }
+    }
+
+    function performAudit(currentHR) {
+        const now = Date.now();
+        if (lastHeartRate > 0) {
+            const diff = currentHR - lastHeartRate;
+            const time = now - lastTimestamp;
+            
+            if (diff >= BPM_JUMP_LIMIT && time <= TIME_WINDOW_MS && !isProtocolActive) {
+                executeProtocol();
+                sendPing();
+            }
+        }
+        lastHeartRate = currentHR;
+        lastTimestamp = now;
+    }
+
+    // --- PROTOCOL ENGINE ---
+    function executeProtocol() {
+        isProtocolActive = true;
+        
+        // This calls the function inside your external aire_recorder.js
+        if (typeof startContinuousRecording === "function") {
+            startContinuousRecording();
+        } else {
+            console.error("aire_recorder.js not loaded yet.");
+        }
+
+        const msg = new SpeechSynthesisUtterance("Security Alert. Assault detected. Calling police.");
+        msg.rate = 0.85;
+        window.speechSynthesis.speak(msg);
+        setTimeout(() => { window.location.href = "tel:10111"; }, 1500);
+    }
+
+  function sendPing() {
+  fetch("https://airstore780-svg.github.io/aireguard/ping.php")
+    .then(response => response.text())
+    .then(text => {
+      console.log(text); // "Ping sent"
+
+      // Speak "Ping received" via TTS
+      const utterance = new SpeechSynthesisUtterance("Ping received");
+      speechSynthesis.speak(utterance);
+    })
+    .catch(err => console.error("Ping error:", err));
+}
+
+        // Listen to SSE from events.php
+const es = new EventSource("https://airstore780-svg.github.io/aireguard/events.php");
+
+es.addEventListener("ping", () => {
+  console.log("Ping received (SSE event)");
+
+  // Text-to-speech
+  const utterance = new SpeechSynthesisUtterance("Your loved one is in danger. Check the live location they sent you on WhatsApp, and call them. Call the police if they don't answer.");
+  speechSynthesis.speak(utterance);
+});
+
+
+    </script>
+    <script src="aire_recorder.js"></script>
+    <script src="pingsender.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
