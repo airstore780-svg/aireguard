@@ -1,248 +1,318 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>AireGuard | Personal Safety</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&family=Playfair+Display:ital@1&display=swap" rel="stylesheet">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AireGuard</title>
 
-    <style>
-        :root {
-            --bg-color: #0a0a0a;
-            --accent-gold: #d4af37;
-            --text-main: #ffffff;
-            --text-dim: #888888;
-            --glass-bg: rgba(255, 255, 255, 0.05);
-        }
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display&display=swap" rel="stylesheet">
 
-        body, html {
-            margin: 0; padding: 0; width: 100%; height: 100%;
-            background-color: var(--bg-color); color: var(--text-main);
-            font-family: 'Inter', sans-serif; display: flex;
-            flex-direction: column; justify-content: center; align-items: center;
-            overflow: hidden;
-        }
+<style>
+:root{
+    --bg:#f7f5f2;
+    --card:#ffffffcc;
+    --text:#111;
+    --sub:#777;
+    --accent:#c6a96b;
+}
 
-        #disclaimer-overlay {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.85); backdrop-filter: blur(10px);
-            display: flex; justify-content: center; align-items: center;
-            z-index: 1000; opacity: 0; visibility: hidden;
-            transition: all 0.5s ease;
-        }
+*{box-sizing:border-box;margin:0;padding:0;}
 
-        #disclaimer-overlay.show { opacity: 1; visibility: visible; }
+body{
+    font-family:Inter;
+    background:linear-gradient(180deg,#faf8f5,#f1ede7);
+    color:var(--text);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
 
-        .modal-card {
-            background: var(--glass-bg);
-            border: 1px solid rgba(212, 175, 55, 0.3);
-            padding: 40px 30px; border-radius: 20px;
-            width: 85%; max-width: 400px; text-align: center;
-        }
+/* APP FRAME */
+.app{
+    width:100%;
+    max-width:430px;
+    height:100vh;
+    padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
 
-        .sync-btn {
-            width: 180px; height: 180px; border-radius: 50%;
-            background: transparent; border: 1px solid var(--accent-gold);
-            color: var(--accent-gold);
-        }
+/* HEADER */
+.header{
+    text-align:center;
+    margin-top:10px;
+}
 
-        .sync-btn.active {
-            border-color: #fff;
-            color: #fff;
-        }
-    </style>
+.title{
+    font-family:"Playfair Display";
+    font-size:26px;
+    letter-spacing:1px;
+}
+
+.subtitle{
+    font-size:12px;
+    color:var(--sub);
+    margin-top:4px;
+    letter-spacing:2px;
+}
+
+/* CENTER BUTTON */
+.center{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.button{
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ffffff,#e8e2d9);
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.1),
+        inset 0 2px 6px rgba(255,255,255,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:600;
+    letter-spacing:2px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+.button:active{
+    transform:scale(0.95);
+}
+
+.button.active{
+    background:linear-gradient(145deg,#d4c2a1,#b89b64);
+    color:white;
+}
+
+/* STATUS */
+.status{
+    background:var(--card);
+    backdrop-filter: blur(20px);
+    border-radius:14px;
+    padding:14px;
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#aaa;
+}
+
+.active .dot{
+    background:green;
+}
+
+/* MODAL */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.3);
+    display:flex;
+    align-items:flex-end;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+}
+
+.overlay.show{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.sheet{
+    background:white;
+    width:100%;
+    padding:20px;
+    border-radius:20px 20px 0 0;
+    text-align:center;
+}
+
+/* LUXURY MODAL BUTTON */
+.modal-btn{
+    margin-top:20px;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ffffff,#e8e2d9);
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.08),
+        inset 0 2px 5px rgba(255,255,255,0.8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-left:auto;
+    margin-right:auto;
+    font-weight:600;
+    letter-spacing:1px;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.modal-btn span{
+    font-size:13px;
+    color:#444;
+}
+
+.modal-btn:active{
+    transform:scale(0.94);
+    box-shadow:
+        0 4px 10px rgba(0,0,0,0.1),
+        inset 0 3px 6px rgba(0,0,0,0.1);
+}
+</style>
 </head>
 
 <body>
 
-<div id="disclaimer-overlay">
-    <div class="modal-card">
-        <button onclick="closeDisclaimer()">×</button>
-        <h2>AireGuard Integrity</h2>
-        <p>Microphone required for safety detection.</p>
-        <button onclick="closeDisclaimer()">Understood</button>
+<div class="app">
+
+<div class="header">
+    <div class="title">AireGuard</div>
+    <div class="subtitle">PERSONAL SAFETY</div>
+</div>
+
+<div class="center">
+    <div class="button" id="mainBtn" onclick="initializeAireGuard()">
+        <span id="btnText">START</span>
     </div>
 </div>
 
-<div class="container">
-    <button class="sync-btn" id="mainBtn" onclick="initializeAireGuard()">
-        <span id="btnText">OFF</span>
-    </button>
+<div class="status" id="status">
+    <div>System</div>
+    <div id="statusText">Standby</div>
+</div>
+
+</div>
+
+<div class="overlay" id="modal">
+<div class="sheet">
+<h3>Microphone Access</h3>
+<p>This app requires microphone access for emergency detection.</p>
+<div class="modal-btn" onclick="closeDisclaimer()">
+    <span>Continue</span>
+</div>
+</div>
 </div>
 
 <script>
-window.onload = () => {
-    setTimeout(() => {
-        document.getElementById('disclaimer-overlay').classList.add('show');
-    }, 800);
-};
+let recognition;
+let transcriptBuffer="";
+let triggered=false;
+let micStream=null;
+let mediaRecorder;
+let recordingActive=false;
 
-function closeDisclaimer() {
-    document.getElementById('disclaimer-overlay').classList.remove('show');
+window.onload=()=>{
+    setTimeout(()=>modal.classList.add("show"),500);
 }
 
-/* =========================
-   GLOBAL STATE (IMPORTANT)
-========================= */
-let recognition;
-let audioStream;
-let mediaRecorder;
-let recordingActive = false;
-let keywordTriggered = false;
-let transcriptBuffer = "";
+function closeDisclaimer(){
+    modal.classList.remove("show");
+}
 
-/* =========================
-   INITIALIZE
-========================= */
-async function initializeAireGuard() {
+async function initializeAireGuard(){
 
-    document.getElementById('btnText').innerText = "Active";
-    document.getElementById('mainBtn').classList.add('active');
+    document.getElementById("btnText").innerText="ACTIVE";
+    document.getElementById("mainBtn").classList.add("active");
+    document.getElementById("statusText").innerText="Listening";
+
+    try{
+        if(!micStream){
+            micStream=await navigator.mediaDevices.getUserMedia({audio:true});
+        }
+    }catch(e){
+        alert("Microphone permission required");
+        return;
+    }
 
     startSpeechEngine();
 }
 
-/* =========================
-   FIXED SPEECH ENGINE
-========================= */
-function startSpeechEngine() {
+function startSpeechEngine(){
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
 
-    if (!SpeechRecognition) {
-        console.error("SpeechRecognition not supported");
+    if(!SpeechRecognition){
+        alert("Speech recognition not supported on this device");
         return;
     }
 
-    recognition = new SpeechRecognition();
-    recognition.continuous = true;
-    recognition.interimResults = true; // IMPORTANT FIX
-    recognition.lang = "en-US";
+    recognition=new SpeechRecognition();
+    recognition.continuous=true;
+    recognition.interimResults=true;
+    recognition.lang="en-US";
 
-    recognition.onresult = (event) => {
+    recognition.onresult=(event)=>{
 
-        let interim = "";
-        let finalText = "";
+        let combined="";
 
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-            const text = event.results[i][0].transcript.toLowerCase();
-
-            if (event.results[i].isFinal) {
-                finalText += text + " ";
-            } else {
-                interim += text + " ";
-            }
+        for(let i=event.resultIndex;i<event.results.length;i++){
+            combined+=event.results[i][0].transcript.toLowerCase()+" ";
         }
 
-        transcriptBuffer = (transcriptBuffer + " " + finalText + interim).toLowerCase();
+        transcriptBuffer=(transcriptBuffer+" "+combined).slice(-1000);
 
-        // CLEAN BUFFER (prevents memory + lag)
-        if (transcriptBuffer.length > 2000) {
-            transcriptBuffer = transcriptBuffer.slice(-1000);
-        }
-
-        // =========================
-        // KEYWORD DETECTION FIXED
-        // =========================
-        if (
-            !keywordTriggered &&
-            transcriptBuffer.includes("james")
-        ) {
-            keywordTriggered = true;
-            triggerEmergencyFlow();
+        if(!triggered && transcriptBuffer.includes("james")){
+            triggered=true;
+            startRecordingLoop();
+            window.location.href="tel:10111";
         }
     };
 
-    recognition.onerror = () => {
-        // silent recovery
-    };
-
-    recognition.onend = () => {
-        // HARD RESTART LOOP (critical fix)
-        setTimeout(() => {
-            try { recognition.start(); } catch (e) {}
-        }, 250);
-    };
+    recognition.onend=()=>setTimeout(()=>recognition.start(),200);
 
     recognition.start();
-
-    // watchdog restart (extra stability layer)
-    setInterval(() => {
-        try {
-            recognition.start();
-        } catch (e) {}
-    }, 4000);
 }
 
-/* =========================
-   EMERGENCY FLOW
-========================= */
-function triggerEmergencyFlow() {
+function startRecordingLoop(){
 
-    if (recordingActive) return;
+    if(recordingActive) return;
+    recordingActive=true;
 
-    recordingActive = true;
+    function recordChunk(){
 
-    sendPing();
-    startRecordingLoop();
+        mediaRecorder=new MediaRecorder(micStream);
+        let chunks=[];
 
-    setTimeout(() => {
-        window.location.href = "tel:10111";
-    }, 1200);
-}
+        mediaRecorder.ondataavailable=e=>chunks.push(e.data);
 
-/* =========================
-   RECORDING LOOP (60s)
-========================= */
-async function startRecordingLoop() {
+        mediaRecorder.onstop=()=>{
 
-    try {
-        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            let blob=new Blob(chunks,{type:"audio/webm"});
+            let url=URL.createObjectURL(blob);
 
-        const loop = () => {
+            let a=document.createElement("a");
+            a.href=url;
+            a.download="recording_"+Date.now()+".webm";
+            a.click();
 
-            mediaRecorder = new MediaRecorder(audioStream);
-            let chunks = [];
+            URL.revokeObjectURL(url);
 
-            mediaRecorder.ondataavailable = e => chunks.push(e.data);
-
-            mediaRecorder.onstop = () => {
-
-                const blob = new Blob(chunks, { type: "audio/webm" });
-                const url = URL.createObjectURL(blob);
-
-                const a = document.createElement("a");
-                a.href = url;
-                a.download = `aireguard_${Date.now()}.webm`;
-                a.click();
-
-                URL.revokeObjectURL(url);
-
-                if (recordingActive) {
-                    setTimeout(loop, 1000);
-                }
-            };
-
-            mediaRecorder.start();
-
-            setTimeout(() => {
-                mediaRecorder.stop();
-            }, 60000);
+            if(recordingActive){
+                setTimeout(recordChunk,1000);
+            }
         };
 
-        loop();
+        mediaRecorder.start();
 
-    } catch (err) {
-        console.error("Mic error:", err);
+        setTimeout(()=>{
+            mediaRecorder.stop();
+        },60000);
     }
-}
 
-/* =========================
-   PING
-========================= */
-function sendPing() {
-    fetch("https://airstore780-svg.github.io/aireguard/ping.php")
-        .catch(() => {});
+    recordChunk();
 }
 </script>
 
