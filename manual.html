@@ -183,16 +183,30 @@
                 recognition.interimResults = false;
                 recognition.lang = 'en-US';
 
+                const startRecognition = () => {
+                    try { recognition.start(); } catch (e) {}
+                };
+
                 recognition.onresult = (event) => {
-                    const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
+                    const transcript = event.results[event.results.length - 1][0].transcript
+                        .toLowerCase()
+                        .trim();
+
                     if (transcript.includes("james")) {
                         executeProtocol();
                         sendPing();
                     }
                 };
 
-                recognition.onerror = (e) => console.error("Speech Error: ", e);
-                recognition.start();
+                recognition.onend = () => {
+                    startRecognition(); // auto-restart
+                };
+
+                recognition.onerror = (e) => {
+                    console.error("Speech Error: ", e);
+                };
+
+                startRecognition();
             }
 
             
@@ -245,12 +259,3 @@ es.addEventListener("ping", () => {
     <script src="pingsender.js"></script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
