@@ -240,6 +240,8 @@ async function initializeAireGuard(){
     startSpeechEngine();
 }
 
+
+
 function startSpeechEngine(){
 
     const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -251,17 +253,26 @@ function startSpeechEngine(){
 
     recognition=new SpeechRecognition();
     recognition.continuous=true;
-    recognition.interimResults=false;
+    recognition.interimResults=true;
     recognition.lang="en-US";
 
     recognition.onresult=(event)=>{
 
-        const lastResult=event.results[event.results.length-1];
-        const transcript=lastResult[0].transcript.toLowerCase().trim();
+        let combined="";
 
-        console.log("Heard:", transcript);
+        for(let i=event.resultIndex;i<event.results.length;i++){
+            combined+=event.results[i][0].transcript.toLowerCase()+" ";
+        }
 
-        if(!triggered && transcript.includes("james")){
+        transcriptBuffer=(transcriptBuffer+" "+combined).slice(-2000);
+
+        const words = transcriptBuffer
+            .trim()
+            .split(/\s+/);
+
+        console.log("Heard:", combined);
+
+        if(!triggered && words.includes("james")){
             triggered=true;
             console.log("TRIGGERED");
 
