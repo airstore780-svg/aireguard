@@ -132,7 +132,7 @@
     <div class="container">
         <div class="brand-header">
             <h1>AireStore</h1>
-            <p>Anti GBV Protection</p>
+            <p>Personal Safety</p>
         </div>
 
         <button class="sync-btn" id="mainBtn" onclick="initializeAireGuard()">
@@ -156,12 +156,10 @@
     }
 
     // --- LOGIC ENGINE ---
-    const BPM_JUMP_LIMIT = 30;    
+        
     const TIME_WINDOW_MS = 5000;  
     
-    let lastHeartRate = 0;
-    let lastTimestamp = 0;
-    let isProtocolActive = false;
+    
 
     async function initializeAireGuard() {
         const btnText = document.getElementById('btnText');
@@ -170,7 +168,6 @@
 
         try {
             
-            startContinuousRecording();
             
             btnText.innerText = "Active";
             btn.classList.add('active');
@@ -188,7 +185,7 @@
 
                 recognition.onresult = (event) => {
                     const transcript = event.results[event.results.length - 1][0].transcript.toLowerCase();
-                    if (transcript.includes("james") && !isProtocolActive) {
+                    if (transcript.includes("james")) {
                         executeProtocol();
                         sendPing();
                     }
@@ -210,14 +207,9 @@
     // --- PROTOCOL ENGINE ---
     function executeProtocol() {
          sendPing();
-        isProtocolActive = true;
+        startContinuousRecording();
+     
         
-        // This calls the function inside your external aire_recorder.js
-        if (typeof startContinuousRecording === "function") {
-            startContinuousRecording();
-        } else {
-            console.error("aire_recorder.js not loaded yet.");
-        }
 
         
         setTimeout(() => { window.location.href = "tel:10111"; }, 1500);
