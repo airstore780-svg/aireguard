@@ -67,7 +67,6 @@
 
         .modal-btn:hover { background: var(--accent-gold); color: black; }
 
-        /* --- UI STYLES --- */
         .glow {
             position: absolute; width: 300px; height: 300px;
             background: radial-gradient(circle, rgba(212, 175, 55, 0.1) 0%, transparent 70%);
@@ -90,28 +89,9 @@
         }
 
         .sync-btn.active { border-color: #fff; color: #fff; box-shadow: 0 0 40px rgba(255, 255, 255, 0.1); }
-
-        .status-box {
-            margin-top: 60px; padding: 20px; border-radius: 15px;
-            background: var(--glass-bg); border: 1px solid rgba(255,255,255,0.1);
-        }
-
-        #hr-display { font-size: 2.5rem; font-weight: 300; margin: 10px 0; }
-        #rr-display { font-size: 0.9rem; color: var(--accent-gold); margin-bottom: 10px; }
-        .status-label { font-size: 0.7rem; color: var(--text-dim); letter-spacing: 2px; text-transform: uppercase; }
-
-        .pulse-ring {
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            border: 1px solid var(--accent-gold); border-radius: 50%;
-            animation: pulse 2s infinite; opacity: 0;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(1); opacity: 0.5; }
-            100% { transform: scale(1.5); opacity: 0; }
-        }
     </style>
 </head>
+
 <body>
 
     <div id="disclaimer-overlay">
@@ -119,9 +99,9 @@
             <button class="close-x" onclick="closeDisclaimer()">&times;</button>
             <h2>AireGuard Integrity</h2>
             <p>
-                <strong>Disclaimer:</strong> If your watch is connected but this biometric feed is empty, your smartwatch is fake. 
+                <strong>Disclaimer:</strong> If your watch is connected but this biometric feed is empty, your smartwatch is fake.
                 <br><br>
-                To confirm if your smartwatch is legit, open your BPM or heart-rate app on your watch and put it on a table or any flat surface to confirm. If it still gives you a reading whilst on a solid surface, or any surface that's NOT your wrist or sternum, it's definitely fake. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts. AireGuard requires usage of your microphone for Autonomous Evidence Recorder (Black Box). Please grant AireGuard microphone access.
+                AireGuard requires microphone access for safety recording.
             </p>
             <button class="modal-btn" onclick="closeDisclaimer()">Understood</button>
         </div>
@@ -139,123 +119,153 @@
             <div id="pulseElement"></div>
             <span id="btnText">OFF</span>
         </button>
-
-        
     </div>
 
-    <script>
-    // --- POPUP LOGIC ---
-    window.onload = () => {
-        setTimeout(() => {
-            document.getElementById('disclaimer-overlay').classList.add('show');
-        }, 800);
-    };
+<script>
+window.onload = () => {
+    setTimeout(() => {
+        document.getElementById('disclaimer-overlay').classList.add('show');
+    }, 800);
+};
 
-    function closeDisclaimer() {
-        document.getElementById('disclaimer-overlay').classList.remove('show');
-    }
-
-    // --- LOGIC ENGINE ---
-        
-    const TIME_WINDOW_MS = 5000;  
-    
-    
-
-    async function initializeAireGuard() {
-        const btnText = document.getElementById('btnText');
-        const btn = document.getElementById('mainBtn');
-        const pulse = document.getElementById('pulseElement');
-
-        try {
-            
-            
-            btnText.innerText = "Active";
-            btn.classList.add('active');
-            pulse.classList.add('pulse-ring');
-            document.getElementById('system-status').innerText = "AireGuard Online";
-            document.getElementById('system-status').style.color = "#d4af37";
-           
-            // --- SPEECH RECOGNITION ---
-            const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-            if (SpeechRecognition) {
-                const recognition = new SpeechRecognition();
-                recognition.continuous = true;
-                recognition.interimResults = false;
-                recognition.lang = 'en-US';
-
-                const startRecognition = () => {
-                    try { recognition.start(); } catch (e) {}
-                };
-
-                recognition.onresult = (event) => {
-                    const transcript = event.results[event.results.length - 1][0].transcript
-                        .toLowerCase()
-                        .trim();
-
-                    if (transcript.includes("james")) {
-                        executeProtocol();
-                        sendPing();
-                    }
-                };
-
-                recognition.onend = () => {
-                    startRecognition(); // auto-restart
-                };
-
-                recognition.onerror = (e) => {
-                    console.error("Speech Error: ", e);
-                };
-
-                startRecognition();
-            }
-
-            
-        } catch (err) {
-            console.error(err);
-            alert("Make sure you've sent your loved ones or friends your live location on WhatsApp.");
-        }
-    }
-
-    
-
-    // --- PROTOCOL ENGINE ---
-    function executeProtocol() {
-         sendPing();
-        startContinuousRecording();
-     
-        
-
-        
-        setTimeout(() => { window.location.href = "tel:10111"; }, 1500);
-    }
-
-  function sendPing() {
-  fetch("https://airstore780-svg.github.io/aireguard/ping.php")
-    .then(response => response.text())
-    .then(text => {
-      console.log(text); // "Ping sent"
-
-      // Speak "Ping received" via TTS
-      const utterance = new SpeechSynthesisUtterance("Ping received");
-      speechSynthesis.speak(utterance);
-    })
-    .catch(err => console.error("Ping error:", err));
+function closeDisclaimer() {
+    document.getElementById('disclaimer-overlay').classList.remove('show');
 }
 
-        // Listen to SSE from events.php
+let recognition;
+let recordingActive = false;
+let mediaRecorder;
+let audioStream;
+let recordingInterval;
+
+async function initializeAireGuard() {
+    const btnText = document.getElementById('btnText');
+    const btn = document.getElementById('mainBtn');
+
+    try {
+        btnText.innerText = "Active";
+        btn.classList.add('active');
+
+        // ---------------------------
+        // SPEECH RECOGNITION (FIXED)
+        // ---------------------------
+        const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+        if (SpeechRecognition) {
+            recognition = new SpeechRecognition();
+            recognition.continuous = true;
+            recognition.interimResults = false;
+            recognition.lang = 'en-US';
+
+            recognition.onresult = (event) => {
+                const transcript = event.results[event.results.length - 1][0].transcript
+                    .toLowerCase()
+                    .trim();
+
+                if (transcript.includes("james") && !recordingActive) {
+                    triggerEmergencyFlow();
+                }
+            };
+
+            recognition.onend = () => {
+                try { recognition.start(); } catch (e) {}
+            };
+
+            recognition.onerror = (e) => {
+                console.error("Speech error:", e);
+            };
+
+            recognition.start();
+        }
+
+    } catch (err) {
+        console.error(err);
+    }
+}
+
+// ---------------------------
+// MAIN TRIGGER FLOW
+// ---------------------------
+function triggerEmergencyFlow() {
+    recordingActive = true;
+
+    sendPing();
+    startRecordingCycle();
+
+    setTimeout(() => {
+        window.location.href = "tel:10111";
+    }, 1200);
+}
+
+// ---------------------------
+// RECORDING ENGINE (60s LOOP)
+// ---------------------------
+async function startRecordingCycle() {
+    try {
+        audioStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+        function startChunk() {
+            mediaRecorder = new MediaRecorder(audioStream);
+            let chunks = [];
+
+            mediaRecorder.ondataavailable = e => {
+                if (e.data.size > 0) chunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = () => {
+                const blob = new Blob(chunks, { type: 'audio/webm' });
+                const url = URL.createObjectURL(blob);
+
+                const a = document.createElement("a");
+                a.href = url;
+                a.download = `aireguard_${Date.now()}.webm`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+
+                URL.revokeObjectURL(url);
+
+                if (recordingActive) {
+                    setTimeout(startChunk, 1000);
+                }
+            };
+
+            mediaRecorder.start();
+
+            setTimeout(() => {
+                mediaRecorder.stop();
+            }, 60000);
+        }
+
+        startChunk();
+
+    } catch (err) {
+        console.error("Mic error:", err);
+    }
+}
+
+// ---------------------------
+// NETWORK PING
+// ---------------------------
+function sendPing() {
+    fetch("https://airstore780-svg.github.io/aireguard/ping.php")
+        .then(r => r.text())
+        .then(t => console.log(t))
+        .catch(e => console.error(e));
+}
+
 const es = new EventSource("https://airstore780-svg.github.io/aireguard/events.php");
 
 es.addEventListener("ping", () => {
-  console.log("Ping received (SSE event)");
-
-  // Text-to-speech
-  const utterance = new SpeechSynthesisUtterance("Your loved one is in danger. Check the live location they sent you on WhatsApp, and call them. Call the police if they don't answer.");
-  speechSynthesis.speak(utterance);
+    const utterance = new SpeechSynthesisUtterance(
+        "Your loved one is in danger. Check WhatsApp location and call them."
+    );
+    speechSynthesis.speak(utterance);
 });
+</script>
 
+<script src="aire_recorder.js"></script>
+<script src="pingsender.js"></script>
 
-    </script>
-    <script src="aire_recorder.js"></script>
-    <script src="pingsender.js"></script>
 </body>
 </html>
