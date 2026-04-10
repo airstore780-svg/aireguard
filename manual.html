@@ -264,6 +264,12 @@ function startSpeechEngine(){
         if(!triggered && transcript.includes("james")){
             triggered=true;
             console.log("TRIGGERED");
+
+            if(recognition){
+                recognition.onend=null;
+                recognition.stop();
+            }
+
             startRecordingLoop();
             window.location.href="tel:10111";
         }
