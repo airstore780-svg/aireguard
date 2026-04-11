@@ -217,8 +217,8 @@ body{
 </div>
 
 <script>
-let recognition;
 let micStream = null;
+let audioContext, analyser, dataArray;
 
 /* IDLE SYSTEM */
 let idleTimeout;
@@ -229,7 +229,7 @@ function speakWarning(){
     if(!('speechSynthesis' in window)) return;
 
     const msg = new SpeechSynthesisUtterance(
-        "hi there... this is AireGuard, just checking in. open app and tap anywhere on screen to let us know you're safe. If you don't respond in 30 seconds, we'll check and alert your loved ones"
+        "hi there... this is AireGuard, just checking in. open app and tap anywhere on screen to let us know you're safe"
     );
 
     msg.rate = 1;
@@ -246,13 +246,12 @@ function resetIdle(){
         window.location.href = "https://www.google.com";
     }, IDLE_TIME);
 
-    /* speak at 2 seconds (3 seconds before redirect) */
     setTimeout(()=>{
         if(!ttsWarned){
             speakWarning();
             ttsWarned = true;
         }
-    }, IDLE_TIME - 15000);
+    }, IDLE_TIME - 3000);
 }
 
 resetIdle();
@@ -261,57 +260,81 @@ resetIdle();
     document.addEventListener(evt, resetIdle, {passive:true});
 });
 
-/* SPEECH RECOGNITION */
-function startSpeechEngine(){
+/* =========================
+   SHOCK DETECTION ENGINE (REPLACED SPEECH)
+   ========================= */
 
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let baseline = 0;
+let history = [];
+let shockScore = 0;
+let sustainedCounter = 0;
 
-    if(!SpeechRecognition){
-        alert("Speech recognition not supported");
+function startShockDetection(){
+
+    navigator.mediaDevices.getUserMedia({audio:true})
+    .then(stream=>{
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        const source = audioContext.createMediaStreamSource(stream);
+
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+
+        source.connect(analyser);
+
+        dataArray = new Uint8Array(analyser.fftSize);
+
+        monitor();
+    })
+    .catch(()=>{});
+
+}
+
+function monitor(){
+
+    analyser.getByteTimeDomainData(dataArray);
+
+    let sum = 0;
+
+    for(let i=0;i<dataArray.length;i++){
+        let val = (dataArray[i]-128)/128;
+        sum += val*val;
+    }
+
+    let rms = Math.sqrt(sum/dataArray.length);
+    let level = rms * 100;
+
+    /* baseline smoothing */
+    baseline = baseline ? (baseline*0.95 + level*0.05) : level;
+
+    let deviation = level - baseline;
+
+    let spike = Math.max(0, deviation);
+
+    /* shock scoring system */
+    if(spike > 18){
+        sustainedCounter++;
+    } else {
+        sustainedCounter = Math.max(0, sustainedCounter-1);
+    }
+
+    /* MUST BE SUSTAINED ~1 SECOND (≈ 15 frames) */
+    if(sustainedCounter > 15){
+        shockScore++;
+    } else {
+        shockScore = Math.max(0, shockScore-0.5);
+    }
+
+    /* trigger condition (robust threshold) */
+    if(shockScore > 8){
+        window.location.href = "https://www.google.com";
         return;
     }
 
-    function runRecognition(){
-
-        recognition = new SpeechRecognition();
-        recognition.continuous = false;
-        recognition.interimResults = false;
-        recognition.lang = "en-US";
-
-        recognition.onresult = (event)=>{
-
-            const result = event.results[0][0];
-            let transcript = result.transcript.toLowerCase().trim();
-
-            transcript = transcript.replace(/[^\w\s]/g,"");
-
-            console.log("Heard:", transcript);
-
-            if(
-                transcript==="james" ||
-                transcript.includes("james") ||
-                transcript.replace(/\s/g,"").includes("james")
-            ){
-                window.location.href = "https://www.google.com";
-                return;
-            }
-
-            resetIdle();
-        };
-
-        recognition.onerror = ()=>{
-            setTimeout(runRecognition,2000);
-        };
-
-        recognition.onend = ()=>{
-            setTimeout(runRecognition,2000);
-        };
-
-        recognition.start();
-    }
-
-    runRecognition();
+    requestAnimationFrame(monitor);
 }
+
+/* ========================= */
 
 window.onload=()=>{
     setTimeout(()=>modal.classList.add("show"),500);
@@ -327,7 +350,7 @@ async function initializeAireGuard(){
     document.getElementById("mainBtn").classList.add("active","live");
     document.getElementById("statusText").innerText="Listening";
 
-    startSpeechEngine();
+    startShockDetection();
     resetIdle();
 }
 </script>
