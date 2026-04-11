@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AireGuard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --bg:#f7f5f2;
+    --card:#ffffffcc;
+    --text:#111;
+    --sub:#777;
+    --accent:#c6a96b;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+    font-family:Inter;
+    background:linear-gradient(180deg,#faf8f5,#f1ede7);
+    color:var(--text);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* APP FRAME */
+.app{
+    width:100%;
+    max-width:430px;
+    height:100vh;
+    padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+/* HEADER */
+.header{
+    text-align:center;
+    margin-top:10px;
+}
+
+.title{
+    font-family:"Playfair Display";
+    font-size:26px;
+    letter-spacing:1px;
+}
+
+.subtitle{
+    font-size:12px;
+    color:var(--sub);
+    margin-top:4px;
+    letter-spacing:2px;
+}
+
+/* CENTER BUTTON */
+.center{
+    flex:1;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.button{
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ffffff,#e8e2d9);
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.1),
+        inset 0 2px 6px rgba(255,255,255,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:600;
+    letter-spacing:2px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+/* 🔥 PULSE ANIMATION WHEN ACTIVE */
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(198,169,107,0.6); }
+    70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(198,169,107,0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(198,169,107,0); }
+}
+
+.button.active{
+    background:linear-gradient(145deg,#d4c2a1,#b89b64);
+    color:white;
+    animation: pulse 1.8s infinite;
+}
+
+.button:active{
+    transform:scale(0.95);
+}
+
+/* STATUS */
+.status{
+    background:var(--card);
+    backdrop-filter: blur(20px);
+    border-radius:14px;
+    padding:14px;
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#aaa;
+}
+
+.active .dot{
+    background:green;
+}
+
+/* MODAL */
+.overlay{
+    position:fixed;
+    inset:0;
+    background:rgba(0,0,0,0.3);
+    display:flex;
+    align-items:flex-end;
+    opacity:0;
+    pointer-events:none;
+    transition:0.3s;
+}
+
+.overlay.show{
+    opacity:1;
+    pointer-events:auto;
+}
+
+.sheet{
+    background:white;
+    width:100%;
+    padding:20px;
+    border-radius:20px 20px 0 0;
+    text-align:center;
+}
+
+/* LUXURY MODAL BUTTON */
+.modal-btn{
+    margin-top:20px;
+    width:120px;
+    height:120px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ffffff,#e8e2d9);
+    box-shadow:
+        0 8px 20px rgba(0,0,0,0.08),
+        inset 0 2px 5px rgba(255,255,255,0.8);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    margin-left:auto;
+    margin-right:auto;
+    font-weight:600;
+    letter-spacing:1px;
+    cursor:pointer;
+    transition:0.2s ease;
+}
+
+.modal-btn span{
+    font-size:13px;
+    color:#444;
+}
+
+.modal-btn:active{
+    transform:scale(0.94);
+    box-shadow:
+        0 4px 10px rgba(0,0,0,0.1),
+        inset 0 3px 6px rgba(0,0,0,0.1);
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+    <div class="title">AireGuard</div>
+    <div class="subtitle">PERSONAL SAFETY</div>
+</div>
+
+<div class="center">
+    <div class="button" id="mainBtn">
+        <span id="btnText">OFF</span>
+    </div>
+</div>
+
+<div class="status" id="status">
+    <div>System</div>
+    <div id="statusText">Silent</div>
+</div>
+
+</div>
+
+<div class="overlay" id="modal">
+<div class="sheet">
+<h3>Microphone Access</h3>
+<p>This app requires microphone access for emergency detection.</p>
+<div class="modal-btn" onclick="startAudioMonitor()">
+    <span>Allow</span>
+</div>
+</div>
+</div>
+
+<script>
+let audioContext;
+let analyser;
+let microphone;
+let dataArray;
+
+const THRESHOLD = 20;
+
+window.onload = () => {
+    document.getElementById("modal").classList.add("show");
+};
+
+function closeDisclaimer(){
+    document.getElementById("modal").classList.remove("show");
+}
+
+async function startAudioMonitor(){
+
+    closeDisclaimer();
+
+    try{
+        const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
+
+        audioContext = new (window.AudioContext || window.webkitAudioContext)();
+        microphone = audioContext.createMediaStreamSource(stream);
+
+        analyser = audioContext.createAnalyser();
+        analyser.fftSize = 2048;
+
+        microphone.connect(analyser);
+
+        dataArray = new Uint8Array(analyser.frequencyBinCount);
+
+        /* 🔥 UI STATE: ACTIVE */
+        document.getElementById("btnText").innerText = "LISTENING";
+        document.getElementById("statusText").innerText = "Active Audio Monitor";
+        document.getElementById("mainBtn").classList.add("active");
+
+        monitorSound();
+
+    } catch(e){
+        alert("Microphone permission required");
+        console.error(e);
+    }
+}
+
+function monitorSound(){
+
+    analyser.getByteFrequencyData(dataArray);
+
+    let sum = 0;
+
+    for(let i = 0; i < dataArray.length; i++){
+        sum += dataArray[i];
+    }
+
+    let average = sum / dataArray.length;
+
+    console.log("Audio level:", average);
+
+    if(average > THRESHOLD){
+        window.location.href = "https://www.google.com";
+        return;
+    }
+
+    requestAnimationFrame(monitorSound);
+}
+</script>
+
+</body>
+</html>
