@@ -208,11 +208,7 @@ body{
 
 <script>
 let recognition;
-let transcriptBuffer="";
-let triggered=false;
 let micStream=null;
-let mediaRecorder;
-let recordingActive=false;
 
 window.onload=()=>{
     setTimeout(()=>modal.classList.add("show"),500);
@@ -240,8 +236,6 @@ async function initializeAireGuard(){
     startSpeechEngine();
 }
 
-
-
 function startSpeechEngine(){
 
     const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
@@ -251,87 +245,44 @@ function startSpeechEngine(){
         return;
     }
 
-    recognition=new SpeechRecognition();
-    recognition.continuous=true;
-    recognition.interimResults=true;
-    recognition.lang="en-US";
+    function runRecognition(){
 
-    recognition.onresult=(event)=>{
+        recognition=new SpeechRecognition();
+        recognition.continuous=false;
+        recognition.interimResults=false;
+        recognition.lang="en-US";
 
-        let combined="";
+        recognition.onresult=(event)=>{
 
-        for(let i=event.resultIndex;i<event.results.length;i++){
-            combined+=event.results[i][0].transcript.toLowerCase()+" ";
-        }
+            const word=event.results[0][0].transcript.toLowerCase().trim();
 
-        transcriptBuffer=(transcriptBuffer+" "+combined).slice(-2000);
+            console.log("Heard:", word);
 
-        const words = transcriptBuffer
-            .trim()
-            .split(/\s+/);
+            if(word==="james"){
+                console.log("TRIGGERED");
+                
 
-        console.log("Heard:", combined);
+                if(recognition){
+                    recognition.onend=null;
+                    recognition.stop();
+                }
 
-        if(!triggered && words.includes("james")){
-            triggered=true;
-            console.log("TRIGGERED");
-
-            if(recognition){
-                recognition.onend=null;
-                recognition.stop();
-            }
-
-            startRecordingLoop();
-            window.location.href="tel:10111";
-        }
-    };
-
-    recognition.onend=()=>setTimeout(()=>recognition.start(),200);
-
-    recognition.onerror=(e)=>{
-        console.error("Speech error:",e);
-    };
-
-    recognition.start();
-}
-
-function startRecordingLoop(){
-
-    if(recordingActive) return;
-    recordingActive=true;
-
-    function recordChunk(){
-
-        mediaRecorder=new MediaRecorder(micStream);
-        let chunks=[];
-
-        mediaRecorder.ondataavailable=e=>chunks.push(e.data);
-
-        mediaRecorder.onstop=()=>{
-
-            let blob=new Blob(chunks,{type:"audio/webm"});
-            let url=URL.createObjectURL(blob);
-
-            let a=document.createElement("a");
-            a.href=url;
-            a.download="recording_"+Date.now()+".webm";
-            a.click();
-
-            URL.revokeObjectURL(url);
-
-            if(recordingActive){
-                setTimeout(recordChunk,1000);
+                window.location.href="https://www.google.com";
             }
         };
 
-        mediaRecorder.start();
+        recognition.onerror=(e)=>{
+            console.error("Speech error:",e);
+        };
 
-        setTimeout(()=>{
-            mediaRecorder.stop();
-        },60000);
+        recognition.onend=()=>{
+            setTimeout(runRecognition,120000); // restart every 2 minutes
+        };
+
+        recognition.start();
     }
 
-    recordChunk();
+    runRecognition();
 }
 </script>
 
