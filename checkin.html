@@ -121,64 +121,6 @@ body{
 .active .dot{
     background:green;
 }
-
-/* MODAL */
-.overlay{
-    position:fixed;
-    inset:0;
-    background:rgba(0,0,0,0.3);
-    display:flex;
-    align-items:flex-end;
-    opacity:0;
-    pointer-events:none;
-    transition:0.3s;
-}
-
-.overlay.show{
-    opacity:1;
-    pointer-events:auto;
-}
-
-.sheet{
-    background:white;
-    width:100%;
-    padding:20px;
-    border-radius:20px 20px 0 0;
-    text-align:center;
-}
-
-/* LUXURY MODAL BUTTON */
-.modal-btn{
-    margin-top:20px;
-    width:120px;
-    height:120px;
-    border-radius:50%;
-    background:linear-gradient(145deg,#ffffff,#e8e2d9);
-    box-shadow:
-        0 8px 20px rgba(0,0,0,0.08),
-        inset 0 2px 5px rgba(255,255,255,0.8);
-    display:flex;
-    align-items:center;
-    justify-content:center;
-    margin-left:auto;
-    margin-right:auto;
-    font-weight:600;
-    letter-spacing:1px;
-    cursor:pointer;
-    transition:0.2s ease;
-}
-
-.modal-btn span{
-    font-size:13px;
-    color:#444;
-}
-
-.modal-btn:active{
-    transform:scale(0.94);
-    box-shadow:
-        0 4px 10px rgba(0,0,0,0.1),
-        inset 0 3px 6px rgba(0,0,0,0.1);
-}
 </style>
 </head>
 
@@ -188,30 +130,20 @@ body{
 
 <div class="header">
     <div class="title">AireGuard</div>
-    <div class="subtitle">by AireStore</div>
+    <div class="subtitle">PERSONAL SAFETY</div>
 </div>
 
 <div class="center">
-    <div class="button" id="mainBtn">
-        <span id="btnText">OFF</span>
+    <div class="button active" id="mainBtn">
+        <span id="btnText">LISTENING</span>
     </div>
 </div>
 
-<div class="status" id="status">
+<div class="status active" id="status">
     <div>System</div>
-    <div id="statusText">Silent</div>
+    <div id="statusText">Active Audio Monitor</div>
 </div>
 
-</div>
-
-<div class="overlay" id="modal">
-<div class="sheet">
-<h3>Microphone Access</h3>
-<p>For a full overview of how AireGuard works check out our "AireGuard" highlight on Instagram (@aire_store). AireGuard requires microphone access for emergency detection. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts.</p>
-<div class="modal-btn" onclick="startAudioMonitor()">
-    <span>Allow</span>
-</div>
-</div>
 </div>
 
 <script>
@@ -223,16 +155,10 @@ let dataArray;
 const THRESHOLD = 20;
 
 window.onload = () => {
-    document.getElementById("modal").classList.add("show");
+    startAudioMonitor();
 };
 
-function closeDisclaimer(){
-    document.getElementById("modal").classList.remove("show");
-}
-
 async function startAudioMonitor(){
-
-    closeDisclaimer();
 
     try{
         const stream = await navigator.mediaDevices.getUserMedia({ audio:true });
@@ -247,15 +173,9 @@ async function startAudioMonitor(){
 
         dataArray = new Uint8Array(analyser.frequencyBinCount);
 
-        /* 🔥 UI STATE: ACTIVE */
-        document.getElementById("btnText").innerText = "LISTENING";
-        document.getElementById("statusText").innerText = "Active Audio Monitor";
-        document.getElementById("mainBtn").classList.add("active");
-
         monitorSound();
 
     } catch(e){
-        alert("Microphone permission required");
         console.error(e);
     }
 }
