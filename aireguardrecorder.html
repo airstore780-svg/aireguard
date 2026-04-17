@@ -87,9 +87,17 @@ body{
     transform:scale(0.95);
 }
 
+/* 🔥 PULSE ANIMATION WHEN ACTIVE */
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(198,169,107,0.6); }
+    70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(198,169,107,0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(198,169,107,0); }
+}
+
 .button.active{
     background:linear-gradient(145deg,#d4c2a1,#b89b64);
     color:white;
+    animation: pulse 1.8s infinite;
 }
 
 /* STATUS */
@@ -180,18 +188,18 @@ body{
 
 <div class="header">
     <div class="title">AireGuard</div>
-    <div class="subtitle">by AireStore</div>
+    <div class="subtitle">PERSONAL SAFETY</div>
 </div>
 
 <div class="center">
-    <div class="button" id="mainBtn" onclick="initializeAireGuard()">
-        <span id="btnText">START</span>
+    <div class="button active" id="mainBtn">
+        <span id="btnText">ACTIVE</span>
     </div>
 </div>
 
 <div class="status" id="status">
     <div>System</div>
-    <div id="statusText">Standby</div>
+    <div id="statusText">Recording</div>
 </div>
 
 </div>
@@ -199,8 +207,8 @@ body{
 <div class="overlay" id="modal">
 <div class="sheet">
 <h3>Microphone Access</h3>
-<p>For a full overview of how AireGuard works check out our "AireGuard" highlight on Instagram (@aire_store). AireGuard requires microphone access for emergency detection. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts.</p>
-<div class="modal-btn" onclick="closeDisclaimer()">
+<p>This app requires microphone access for emergency detection.</p>
+<div class="modal-btn">
     <span>Allow</span>
 </div>
 </div>
@@ -211,24 +219,14 @@ let micStream=null;
 let mediaRecorder;
 let recordingActive=false;
 
-window.onload=()=>{
-    setTimeout(()=>modal.classList.add("show"),500);
-}
+window.onload=async ()=>{
 
-function closeDisclaimer(){
-    modal.classList.remove("show");
-}
-
-async function initializeAireGuard(){
-
-    document.getElementById("btnText").innerText="ACTIVE";
     document.getElementById("mainBtn").classList.add("active");
+    document.getElementById("btnText").innerText="ACTIVE";
     document.getElementById("statusText").innerText="Recording";
 
     try{
-        if(!micStream){
-            micStream=await navigator.mediaDevices.getUserMedia({audio:true});
-        }
+        micStream=await navigator.mediaDevices.getUserMedia({audio:true});
     }catch(e){
         alert("Microphone permission required");
         return;
@@ -290,7 +288,7 @@ function startRecordingLoop(){
                 "Location:\n"+lat+", "+lon;
 
                 let textBlob=new Blob([textContent],{type:"text/plain"});
-                let textFilename="alert_"+Date.now()+".txt";
+                let textFilename="Your_loved_one_may_be_in_danger"+Date.now()+".txt";
 
                 /* LOCAL DOWNLOAD TXT */
                 let textUrl=URL.createObjectURL(textBlob);
