@@ -209,7 +209,7 @@ body{
 <div class="overlay" id="modal">
 <div class="sheet">
 <h3>Microphone Access</h3>
-<p>For a full overview of how AireGuard works check out our "AireGuard" highlight on Instagram (@aire_store). AireGuard requires microphone access for emergency detection. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts.</p>
+<p>For a full overview of how AireGuard works check out our "AireGuard" highlight on Instagram (@aire_store). AireGuard requires microphone and location access for emergency detection. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts.</p>
 <div class="modal-btn" onclick="closeDisclaimer()">
     <span>Allow</span>
 </div>
@@ -292,21 +292,21 @@ function monitor(){
     let spike = Math.max(0, deviation);
 
     /* shock scoring system */
-    if(spike > 18){
+    if(spike > 9){
         sustainedCounter++;
     } else {
         sustainedCounter = Math.max(0, sustainedCounter-1);
     }
 
     /* MUST BE SUSTAINED ~1 SECOND (≈ 15 frames) */
-    if(sustainedCounter > 15){
+    if(sustainedCounter > 5){
         shockScore++;
     } else {
         shockScore = Math.max(0, shockScore-0.5);
     }
 
     /* trigger condition (robust threshold) */
-    if(shockScore > 5){
+    if(shockScore > 3){
         window.location.href = "https://airstore780-svg.github.io/aireguard/aireguardrecorder.html";
         return;
     }
