@@ -292,14 +292,14 @@ function monitor(){
     let spike = Math.max(0, deviation);
 
     /* shock scoring system */
-    if(spike > 10){
+    if(spike > 18){
         sustainedCounter++;
     } else {
         sustainedCounter = Math.max(0, sustainedCounter-1);
     }
 
     /* MUST BE SUSTAINED ~1 SECOND (≈ 15 frames) */
-    if(sustainedCounter > 8){
+    if(sustainedCounter > 15){
         shockScore++;
     } else {
         shockScore = Math.max(0, shockScore-0.5);
