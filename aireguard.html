@@ -238,27 +238,7 @@ function speakWarning(){
     window.speechSynthesis.speak(msg);
 }
 
-function resetIdle(){
-    clearTimeout(idleTimeout);
-    ttsWarned = false;
 
-    idleTimeout = setTimeout(()=>{
-        window.location.href = "https://airstore780-svg.github.io/aireguard/checkin.html";
-    }, IDLE_TIME);
-
-    setTimeout(()=>{
-        if(!ttsWarned){
-            speakWarning();
-            ttsWarned = true;
-        }
-    }, IDLE_TIME - 3000);
-}
-
-resetIdle();
-
-["mousemove","keydown","click","scroll","touchstart"].forEach(evt=>{
-    document.addEventListener(evt, resetIdle, {passive:true});
-});
 
 /* =========================
    SHOCK DETECTION ENGINE (REPLACED SPEECH)
@@ -312,21 +292,21 @@ function monitor(){
     let spike = Math.max(0, deviation);
 
     /* shock scoring system */
-    if(spike > 18){
+    if(spike > 10){
         sustainedCounter++;
     } else {
         sustainedCounter = Math.max(0, sustainedCounter-1);
     }
 
     /* MUST BE SUSTAINED ~1 SECOND (≈ 15 frames) */
-    if(sustainedCounter > 15){
+    if(sustainedCounter > 8){
         shockScore++;
     } else {
         shockScore = Math.max(0, shockScore-0.5);
     }
 
     /* trigger condition (robust threshold) */
-    if(shockScore > 8){
+    if(shockScore > 5){
         window.location.href = "https://airstore780-svg.github.io/aireguard/aireguardrecorder.html";
         return;
     }
