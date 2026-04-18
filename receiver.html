@@ -222,48 +222,27 @@ const IDLE_TIME = 60000;
 let ttsWarned = false;
 
 /* IDLE SYSTEM */
-function speakWarning(){
-    if(!('speechSynthesis' in window)) return;
 
-    const msg = new SpeechSynthesisUtterance(
-        "hi there... this is AireGuard, just checking in. open app and tap anywhere on screen to let us know you're safe"
-    );
 
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(msg);
-}
 
-function resetIdle(){
-    clearTimeout(idleTimeout);
-    ttsWarned = false;
 
-    idleTimeout = setTimeout(()=>{
-        window.location.href = "https://www.google.com";
-    }, IDLE_TIME);
 
-    setTimeout(()=>{
-        if(!ttsWarned){
-            speakWarning();
-            ttsWarned = true;
-        }
-    }, IDLE_TIME - 3000);
-}
-
-resetIdle();
-
-["mousemove","keydown","click","scroll","touchstart"].forEach(evt=>{
-    document.addEventListener(evt, resetIdle, {passive:true});
-});
 
 /* =========================
-   SERVER AUTO DOWNLOAD (UPGRADED)
+   SERVER PING DETECTION (MODIFIED)
    ========================= */
 
-let lastFile = null;
+let lastPing = null;
 
-function downloadFile(url, filename){
-    const a = document.createElement("a");
-    a.href = url;
+function downloadAlert(){
+
+    let text = "Your loved one may be in danger. Check the live location they sent via WhatsApp. If they don't answer your call, phone the police.";
+
+    let blob = new Blob([text], {type:"text/plain"});
+    let filename = "aireguard_alert_" + Date.now() + ".txt";
+
+    let a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -273,19 +252,14 @@ function downloadFile(url, filename){
 async function checkServer(){
 
     try{
-        const res = await fetch("latest.php");
+        const res = await fetch("https://your-tinyhost-domain.com/ping.php");
         const data = await res.json();
 
-        if(!data || !data.file) return;
+        if(!data || !data.time) return;
 
-        if(data.file !== lastFile){
-            lastFile = data.file;
-
-            downloadFile("uploads/" + data.file, data.file);
-
-            if(data.txt){
-                downloadFile("uploads/" + data.txt, data.txt);
-            }
+        if(data.time !== lastPing){
+            lastPing = data.time;
+            downloadAlert();
         }
 
     }catch(e){}
@@ -317,7 +291,7 @@ async function initializeAireGuard(){
     document.getElementById("statusText").innerText="Listening";
 
     startAutoDownload();
-    resetIdle();
+    
 }
 </script>
 
