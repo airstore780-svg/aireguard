@@ -63,8 +63,10 @@ body{
 .center{
     flex:1;
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
+    gap:20px;
 }
 
 .button{
@@ -190,13 +192,17 @@ body{
 
 <div class="header">
     <div class="title">AireGuard</div>
-    <div class="subtitle">by AireStore</div>
+    <div class="subtitle">PERSONAL SAFETY</div>
 </div>
 
 <div class="center">
     <div class="button" id="mainBtn" onclick="initializeAireGuard()">
         <span id="btnText">START</span>
     </div>
+
+    <div class="button" onclick="window.location.href='test.html'">
+    <span>ALARM</span>
+</div>
 </div>
 
 <div class="status" id="status">
@@ -209,7 +215,7 @@ body{
 <div class="overlay" id="modal">
 <div class="sheet">
 <h3>Microphone Access</h3>
-<p>For a full overview of how AireGuard works check out our "AireGuard" highlight on Instagram (@aire_store). AireGuard requires microphone and location access for emergency detection. AireGuard is a tool, not a miracle. While our algorithm is relentless, no technology is 100% foolproof in a crisis. Use AireGuard as a powerful layer of your safety strategy, but never stop trusting your instincts.</p>
+<p>This app requires microphone access for emergency detection.</p>
 <div class="modal-btn" onclick="closeDisclaimer()">
     <span>Allow</span>
 </div>
@@ -241,7 +247,7 @@ function speakWarning(){
 
 
 /* =========================
-   SHOCK DETECTION ENGINE (REPLACED SPEECH)
+   SHOCK DETECTION ENGINE
    ========================= */
 
 let baseline = 0;
@@ -284,28 +290,23 @@ function monitor(){
     let rms = Math.sqrt(sum/dataArray.length);
     let level = rms * 100;
 
-    /* baseline smoothing */
     baseline = baseline ? (baseline*0.95 + level*0.05) : level;
 
     let deviation = level - baseline;
-
     let spike = Math.max(0, deviation);
 
-    /* shock scoring system */
     if(spike > 9){
         sustainedCounter++;
     } else {
         sustainedCounter = Math.max(0, sustainedCounter-1);
     }
 
-    /* MUST BE SUSTAINED ~1 SECOND (≈ 15 frames) */
     if(sustainedCounter > 5){
         shockScore++;
     } else {
         shockScore = Math.max(0, shockScore-0.5);
     }
 
-    /* trigger condition (robust threshold) */
     if(shockScore > 3){
         window.location.href = "https://airstore780-svg.github.io/aireguard/aireguardrecorder.html";
         return;
@@ -313,8 +314,6 @@ function monitor(){
 
     requestAnimationFrame(monitor);
 }
-
-/* ========================= */
 
 window.onload=()=>{
     setTimeout(()=>modal.classList.add("show"),500);
