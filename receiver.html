@@ -222,27 +222,28 @@ const IDLE_TIME = 60000;
 let ttsWarned = false;
 
 /* IDLE SYSTEM */
+function speakWarning(){
+    if(!('speechSynthesis' in window)) return;
 
+    const msg = new SpeechSynthesisUtterance(
+        "hi there... this is AireGuard, just checking in. open app and tap anywhere on screen to let us know you're safe"
+    );
 
-
+    window.speechSynthesis.cancel();
+    window.speechSynthesis.speak(msg);
+}
 
 
 
 /* =========================
-   SERVER PING DETECTION (MODIFIED)
+   SERVER AUTO DOWNLOAD (UPGRADED)
    ========================= */
 
-let lastPing = null;
+let lastFile = null;
 
-function downloadAlert(){
-
-    let text = "Your loved one may be in danger. Check the live location they sent via WhatsApp. If they don't answer your call, phone the police.";
-
-    let blob = new Blob([text], {type:"text/plain"});
-    let filename = "aireguard_alert_" + Date.now() + ".txt";
-
-    let a = document.createElement("a");
-    a.href = URL.createObjectURL(blob);
+function downloadFile(url, filename){
+    const a = document.createElement("a");
+    a.href = url;
     a.download = filename;
     document.body.appendChild(a);
     a.click();
@@ -255,11 +256,16 @@ async function checkServer(){
         const res = await fetch("https://airstore780-svg.github.io/aireguard/newevidence.php");
         const data = await res.json();
 
-        if(!data || !data.time) return;
+        if(!data || !data.file) return;
 
-        if(data.time !== lastPing){
-            lastPing = data.time;
-            downloadAlert();
+        if(data.file !== lastFile){
+            lastFile = data.file;
+
+            downloadFile("uploads/" + data.file, data.file);
+
+            if(data.txt){
+                downloadFile("uploads/" + data.txt, data.txt);
+            }
         }
 
     }catch(e){}
