@@ -1,4 +1,4 @@
-<script>
+
 let micStream = null;
 let audioContext, analyser, dataArray;
 
@@ -20,27 +20,7 @@ function speakWarning(){
     window.speechSynthesis.speak(msg);
 }
 
-function resetIdle(){
-    clearTimeout(idleTimeout);
-    ttsWarned = false;
 
-    idleTimeout = setTimeout(()=>{
-        window.location.href = "https://www.google.com";
-    }, IDLE_TIME);
-
-    setTimeout(()=>{
-        if(!ttsWarned){
-            speakWarning();
-            ttsWarned = true;
-        }
-    }, IDLE_TIME - 3000);
-}
-
-resetIdle();
-
-["mousemove","keydown","click","scroll","touchstart"].forEach(evt=>{
-    document.addEventListener(evt, resetIdle, {passive:true});
-});
 
 /* =========================
    AI-POWERED DETECTION
@@ -74,7 +54,7 @@ function startShockDetection(){
 async function sendToAI(data){
 
     try{
-        const res = await fetch("/analyze.php",{
+        const res = await fetch("/analysis.php",{
             method:"POST",
             headers:{
                 "Content-Type":"application/json"
@@ -85,7 +65,7 @@ async function sendToAI(data){
         const result = await res.json();
 
         if(result.decision === "YES"){
-            window.location.href = "https://www.google.com";
+            window.location.href = "https://airstore780-svg.github.io/aireguard/aireguardrecorder.html";
         }
 
     }catch(err){
@@ -164,6 +144,5 @@ async function initializeAireGuard(){
     document.getElementById("statusText").innerText="Listening";
 
     startShockDetection();
-    resetIdle();
+    
 }
-</script>
