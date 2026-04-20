@@ -222,8 +222,8 @@ let recordingActive=false;
 window.onload=async ()=>{
 
     document.getElementById("mainBtn").classList.add("active");
-    document.getElementById("btnText").innerText="ACTIVE";
-    document.getElementById("statusText").innerText="Recording";
+    document.getElementById("btnText").innerText="Recording...";
+    document.getElementById("statusText").innerText="Recording...";
 
     try{
         micStream=await navigator.mediaDevices.getUserMedia({audio:true});
