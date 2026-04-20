@@ -62,8 +62,10 @@ body{
 .center{
     flex:1;
     display:flex;
+    flex-direction:column;
     justify-content:center;
     align-items:center;
+    gap:20px;
 }
 
 .button{
@@ -130,18 +132,24 @@ body{
 
 <div class="header">
     <div class="title">AireGuard</div>
-    <div class="subtitle">PERSONAL SAFETY</div>
+    <div class="subtitle">by AireStore | Alarm</div>
 </div>
 
 <div class="center">
     <div class="button active" id="mainBtn">
-        <span id="btnText">LISTENING</span>
+        <span id="btnText">LISTENING...</span>
+    </div>
+
+    <div class="button" onclick="window.location.href='aireguard.html'">
+        <span>HOME</span>
     </div>
 </div>
 
+
+
 <div class="status active" id="status">
     <div>System</div>
-    <div id="statusText">Active Audio Monitor</div>
+    <div id="statusText">Active Acoustic Alarm</div>
 </div>
 
 </div>
