@@ -190,7 +190,7 @@ body{
 
 <div class="header">
     <div class="title">AireGuard</div>
-    <div class="subtitle">PERSONAL SAFETY</div>
+    <div class="subtitle">by AireStore | Receiver</div>
 </div>
 
 <div class="center">
@@ -209,7 +209,7 @@ body{
 <div class="overlay" id="modal">
 <div class="sheet">
 <h3>Auto-download Access</h3>
-<p>Your loved one's recordings will be saved automatically when anomalies are detected.</p>
+<p>Your loved one's recordings and other evidence are saved automatically directly on your phone should your loved one be in a situation.</p>
 <div class="modal-btn" onclick="closeDisclaimer()">
     <span>Allow</span>
 </div>
@@ -222,18 +222,6 @@ const IDLE_TIME = 60000;
 let ttsWarned = false;
 
 /* IDLE SYSTEM */
-function speakWarning(){
-    if(!('speechSynthesis' in window)) return;
-
-    const msg = new SpeechSynthesisUtterance(
-        "hi there... this is AireGuard, just checking in. open app and tap anywhere on screen to let us know you're safe"
-    );
-
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(msg);
-}
-
-
 
 /* =========================
    SERVER AUTO DOWNLOAD (UPGRADED)
@@ -292,9 +280,9 @@ function closeDisclaimer(){
 
 async function initializeAireGuard(){
 
-    document.getElementById("btnText").innerText="ACTIVE";
+    document.getElementById("btnText").innerText="On Alert...";
     document.getElementById("mainBtn").classList.add("active","live");
-    document.getElementById("statusText").innerText="Listening";
+    document.getElementById("statusText").innerText="On Alert...";
 
     startAutoDownload();
     
