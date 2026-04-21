@@ -231,18 +231,7 @@ let idleTimeout;
 const IDLE_TIME = 60000;
 let ttsWarned = false;
 
-function speakWarning(){
-    if(!('speechSynthesis' in window)) return;
 
-    const msg = new SpeechSynthesisUtterance(
-        "hi there... this is AireGuard, just checking in. open app and tap anywhere on screen to let us know you're safe"
-    );
-
-    msg.rate = 1;
-    msg.pitch = 1;
-    window.speechSynthesis.cancel();
-    window.speechSynthesis.speak(msg);
-}
 
 
 
