@@ -293,7 +293,7 @@ function monitor(){
     if(sustainedCounter > 22){
         shockScore++;
     } else {
-        shockScore = Math.max(0, shockScore-1.2);
+        shockScore = Math.max(0, shockScore-0.9);
     }
 
     if(shockScore > 7){
