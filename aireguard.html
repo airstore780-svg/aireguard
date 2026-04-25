@@ -284,16 +284,16 @@ function monitor(){
     let deviation = level - baseline;
     let spike = Math.max(0, deviation);
 
-    if(spike > 10){
+    if(spike > 17){
         sustainedCounter++;
     } else {
         sustainedCounter = Math.max(0, sustainedCounter-1);
     }
 
-    if(sustainedCounter > 15){
+    if(sustainedCounter > 22){
         shockScore++;
     } else {
-        shockScore = Math.max(0, shockScore-0.9);
+        shockScore = Math.max(0, shockScore-1.2);
     }
 
     if(shockScore > 7){
