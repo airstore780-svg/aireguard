@@ -284,19 +284,19 @@ function monitor(){
     let deviation = level - baseline;
     let spike = Math.max(0, deviation);
 
-    if(spike > 15){
+    if(spike > 8){
         sustainedCounter++;
     } else {
         sustainedCounter = Math.max(0, sustainedCounter-1);
     }
 
-    if(sustainedCounter > 10){
+    if(sustainedCounter > 5){
         shockScore++;
     } else {
         shockScore = Math.max(0, shockScore-0.5);
     }
 
-    if(shockScore > 7){
+    if(shockScore > 3){
         window.location.href = "https://airstore780-svg.github.io/aireguard/aireguardrecorder.html";
         return;
     }
