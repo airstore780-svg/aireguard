@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>AireGuard</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display&display=swap" rel="stylesheet">
+
+<style>
+:root{
+    --bg:#f7f5f2;
+    --card:#ffffffcc;
+    --text:#111;
+    --sub:#777;
+    --accent:#c6a96b;
+}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+    font-family:Inter;
+    background:linear-gradient(180deg,#faf8f5,#f1ede7);
+    color:var(--text);
+    height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+/* APP FRAME */
+.app{
+    width:100%;
+    max-width:430px;
+    height:100vh;
+    padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom);
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+}
+
+/* HEADER */
+.header{
+    text-align:center;
+    margin-top:10px;
+}
+
+.title{
+    font-family:"Playfair Display";
+    font-size:26px;
+    letter-spacing:1px;
+}
+
+.subtitle{
+    font-size:12px;
+    color:var(--sub);
+    margin-top:4px;
+    letter-spacing:2px;
+}
+
+/* CENTER BUTTON */
+.center{
+    flex:1;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    gap:20px;
+}
+
+.button{
+    width:180px;
+    height:180px;
+    border-radius:50%;
+    background:linear-gradient(145deg,#ffffff,#e8e2d9);
+    box-shadow:
+        0 10px 30px rgba(0,0,0,0.1),
+        inset 0 2px 6px rgba(255,255,255,0.8);
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    font-weight:600;
+    letter-spacing:2px;
+    cursor:pointer;
+    transition:0.2s;
+}
+
+/* 🔥 PULSE ANIMATION WHEN ACTIVE */
+@keyframes pulse {
+    0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(198,169,107,0.6); }
+    70% { transform: scale(1.03); box-shadow: 0 0 0 15px rgba(198,169,107,0); }
+    100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(198,169,107,0); }
+}
+
+.button.active{
+    background:linear-gradient(145deg,#d4c2a1,#b89b64);
+    color:white;
+    animation: pulse 1.8s infinite;
+}
+
+.button:active{
+    transform:scale(0.95);
+}
+
+/* STATUS */
+.status{
+    background:var(--card);
+    backdrop-filter: blur(20px);
+    border-radius:14px;
+    padding:14px;
+    font-size:13px;
+    display:flex;
+    justify-content:space-between;
+}
+
+.dot{
+    width:8px;
+    height:8px;
+    border-radius:50%;
+    background:#aaa;
+}
+
+.active .dot{
+    background:green;
+}
+</style>
+</head>
+
+<body>
+
+<div class="app">
+
+<div class="header">
+    <div class="title">AireGuard</div>
+    <div class="subtitle">by AireStore | Alarm</div>
+</div>
+
+<div class="center">
+    <div class="button active" id="mainBtn">
+        <span id="btnText">LISTENING...</span>
+    </div>
+
+    <div class="button" onclick="window.location.href='aireguard.html'">
+        <span>HOME</span>
+    </div>
+</div>
+
+
+
+<div class="status active" id="status">
+    <div>System</div>
+    <div id="statusText">Voice Alarm</div>
+</div>
+
+</div>
+
+<script>
+let recognition;
+let isListening = false;
+let triggered = false;
+
+const REDIRECT_URL =
+    "https://airstore780-svg.github.io/aireguard/aireguardrecorder.html";
+
+const btnText = document.getElementById("btnText");
+const statusText = document.getElementById("statusText");
+const mainBtn = document.getElementById("mainBtn");
+
+
+function setStatus(button, status) {
+    btnText.textContent = button;
+    statusText.textContent = status;
+}
+
+
+function startSpeechRecognition() {
+
+    const SpeechRecognition =
+        window.SpeechRecognition ||
+        window.webkitSpeechRecognition;
+
+    if (!SpeechRecognition) {
+
+        setStatus(
+            "UNSUPPORTED",
+            "Speech recognition unavailable"
+        );
+
+        console.error("Web Speech API is not supported.");
+
+        return;
+    }
+
+
+    recognition = new SpeechRecognition();
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+
+    // Try English speech recognition
+    recognition.lang = "en-US";
+
+
+    recognition.onstart = function () {
+
+        isListening = true;
+
+        mainBtn.classList.add("active");
+
+        setStatus(
+            "LISTENING...",
+            "Listening for voice command"
+        );
+
+        console.log("AireGuard speech recognition STARTED");
+    };
+
+
+    recognition.onaudiostart = function () {
+
+        console.log("Microphone audio detected.");
+    };
+
+
+    recognition.onsoundstart = function () {
+
+        console.log("Sound detected.");
+    };
+
+
+    recognition.onspeechstart = function () {
+
+        console.log("Speech detected.");
+    };
+
+
+    recognition.onresult = function (event) {
+
+        let transcript = "";
+
+        for (
+            let i = event.resultIndex;
+            i < event.results.length;
+            i++
+        ) {
+
+            transcript +=
+                event.results[i][0].transcript;
+        }
+
+
+        transcript = transcript.trim();
+
+        console.log("RECOGNIZED:", transcript);
+
+
+        /*
+         * Detect "James" as an actual word.
+         *
+         * Examples that trigger:
+         * James
+         * Hey James
+         * James help
+         * James!
+         *
+         * But not:
+         * Jamestown
+         */
+        if (/\bjames\b/i.test(transcript)) {
+
+            triggerAlarm();
+
+        }
+    };
+
+
+    recognition.onerror = function (event) {
+
+        console.error(
+            "Speech recognition error:",
+            event.error
+        );
+
+
+        /*
+         * Permission was denied.
+         */
+        if (event.error === "not-allowed") {
+
+            isListening = false;
+
+            setStatus(
+                "MIC BLOCKED",
+                "Microphone permission required"
+            );
+
+            return;
+        }
+
+
+        /*
+         * No speech isn't a fatal error.
+         */
+        if (event.error === "no-speech") {
+
+            console.log("No speech detected.");
+        }
+
+
+        /*
+         * Network errors can occur with the
+         * browser speech recognition service.
+         */
+        if (event.error === "network") {
+
+            console.log(
+                "Speech recognition network error."
+            );
+        }
+    };
+
+
+    recognition.onend = function () {
+
+        console.log("Speech recognition ENDED");
+
+
+        /*
+         * If James hasn't triggered the alarm,
+         * immediately start listening again.
+         */
+        if (!triggered && isListening) {
+
+            setTimeout(function () {
+
+                try {
+
+                    recognition.start();
+
+                } catch (error) {
+
+                    console.log(
+                        "Restart failed:",
+                        error
+                    );
+
+                }
+
+            }, 300);
+        }
+    };
+
+
+    /*
+     * Start recognition.
+     */
+    try {
+
+        recognition.start();
+
+    } catch (error) {
+
+        console.error(
+            "Could not start recognition:",
+            error
+        );
+
+        setStatus(
+            "ERROR",
+            "Could not start microphone"
+        );
+    }
+}
+
+
+function triggerAlarm() {
+
+    if (triggered) return;
+
+    triggered = true;
+    isListening = false;
+
+    setStatus(
+        "TRIGGERED",
+        "Voice command detected"
+    );
+
+    mainBtn.classList.add("active");
+
+    console.log("JAMES DETECTED — ACTIVATING AIREGUARD");
+
+    if (recognition) {
+
+        try {
+            recognition.stop();
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
+
+    /*
+     * Tiny delay gives the UI time to update
+     * before navigating.
+     */
+    setTimeout(function () {
+
+        window.location.href = REDIRECT_URL;
+
+    }, 150);
+}
+
+
+/*
+ * IMPORTANT:
+ *
+ * Some browsers require speech recognition to begin
+ * from a user interaction.
+ *
+ * Therefore clicking the main button will also start it.
+ */
+mainBtn.addEventListener("click", function () {
+
+    if (!isListening && !triggered) {
+
+        startSpeechRecognition();
+
+    }
+
+});
+
+
+/*
+ * Try automatic startup.
+ */
+window.addEventListener("load", function () {
+
+    startSpeechRecognition();
+
+});
+</script>
+</body>
+</html>
