@@ -1,6 +1,6 @@
 const SERVER = "https://airstore780-svg.github.io/aireguard/relayapi.php";
 
-const ROOM = "aireguard";
+const ROOM = "alert";
 
 const MESSAGE =
     "I'm in a situation, call me! If I don't answer call the police!";
