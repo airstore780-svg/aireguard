@@ -1,5 +1,5 @@
 
-const SERVER = "https://YOUR-DOMAIN.com/relayapi.php";
+const SERVER = "https://airstore780-svg.github.io/aireguard/relayapi.php";
 const ROOM = "aireguard";
 
 async function checkForSOS() {
